@@ -1,7 +1,7 @@
 
+    //main.js in electrol project
     
-    
-    const { app, BrowserWindow, ipcMain } = require('electron');
+    const { app, BrowserWindow, ipcMain, Menu, MenuItem } = require('electron');
 const path = require('path');
 
 // Add performance optimizations
@@ -9,7 +9,7 @@ app.commandLine.appendSwitch('enable-gpu-rasterization');
 app.commandLine.appendSwitch('enable-zero-copy');
 app.commandLine.appendSwitch('enable-tcp-fast-open');
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4096');
-
+//todo: to enable dev tool for my app change devtools to
 function createWindow() {
     const mainWindow = new BrowserWindow({
         width: 1200,
@@ -21,7 +21,7 @@ function createWindow() {
             webviewTag: true,
             experimentalFeatures: true,
             enableBlinkFeatures: 'PrefetchDNSOnLinkHover',
-            devTools: true,
+            devTools: false,
             enableRemoteModule: true
         }
     });
@@ -65,10 +65,11 @@ function createWindow() {
 // Handle settings window
 function createSettingsWindow() {
     const settingsWindow = new BrowserWindow({
-        width: 600,
-        height: 400,
+        width: 1200,
+        height: 800,
         parent: BrowserWindow.getFocusedWindow(),
         modal: true,
+        autoHideMenuBar: true,  // Add this line
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
@@ -84,9 +85,38 @@ setInterval(() => {
 }, 5000);
 
 app.on('web-contents-created', (event, contents) => {
+    // Clear cache on load
     contents.on('did-finish-load', () => {
         contents.session.clearCache();
     });
+
+    // Handle webview specifically
+    if (contents.getType() === 'webview') {
+        // Add these to allow proper devtools
+        contents.setWindowOpenHandler(({ url }) => {
+            return { action: 'allow' };
+        });
+
+        // Enable dev tools for this webview
+        contents.on('before-input-event', (event, input) => {
+            if ((input.key === 'F12') || 
+                (input.control && input.shift && input.key === 'i')) {
+                contents.openDevTools({ mode: 'detach' });
+            }
+        });
+
+        contents.on('context-menu', (event, params) => {
+            const menu = new Menu();
+            menu.append(new MenuItem({
+                label: 'Inspect Element',
+                click: () => {
+                    contents.inspectElement(params.x, params.y);
+                    contents.openDevTools({ mode: 'detach' });
+                }
+            }));
+            menu.popup();
+        });
+    }
 });
 
 app.whenReady().then(createWindow);
@@ -107,4 +137,5 @@ app.on('activate', () => {
 ipcMain.on('open-settings', () => {
     createSettingsWindow();
 });
+
 

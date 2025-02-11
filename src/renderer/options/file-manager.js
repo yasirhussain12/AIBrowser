@@ -3,7 +3,7 @@ let selectedFile = null;
 let draggedItem = null;
 let placeholder = null;
 let isFileBeingDragged = false;
-
+ 
 // DOM ELEMENTS
 const fileListEl = document.getElementById('fileList');
 const filesContainer = document.getElementById('filesContainer');

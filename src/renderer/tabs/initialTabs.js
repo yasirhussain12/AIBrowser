@@ -1,3 +1,6 @@
+//initialTabs.js
+const { Menu, MenuItem } = require('electron');
+
 (function() {
     let tabs = [];
     let activeTabId = null;
@@ -19,9 +22,7 @@
     };
 
     function setupTabManagement() {
-        log.info('Initializing tab management...');
         window.dbRegistry.ready.then(() => {
-            log.debug('DB Registry ready');
             const newTabBtn = document.getElementById('newTabBtn');
             if (!newTabBtn) {
                 log.error('Tab controls not found');
@@ -29,13 +30,11 @@
             }
       
             newTabBtn.addEventListener('click', () => {
-                log.debug('New tab button clicked');
                 createTab();
             });
           
             checkAndRedirectDefaultBookmark().then(shouldCreateTab => {
                 if (!shouldCreateTab) {
-                    log.debug('Creating default tab');
                     createTab();
                 }
             });
@@ -44,16 +43,13 @@
 
     async function checkAndRedirectDefaultBookmark() {
         try {
-            log.debug('Checking default bookmarks');
             const bookmarks = await getBookmarks();
             const defaultBookmarks = bookmarks.filter(bookmark => bookmark.isDefault);
-            log.debug('Default bookmarks found:', defaultBookmarks.length);
         
             if (defaultBookmarks.length > 0 && !window.location.href.includes('?noredirect')) {
                 defaultBookmarks.forEach(bookmark => {
                     let url = bookmark.url;
                     url = url.startsWith('http') ? url : 'https://' + url;
-                    log.debug('Creating tab for default bookmark:', url);
                     createTab(url);
                 });
                 return true;
@@ -66,7 +62,6 @@
     }
 
     async function retrieveBookmarkFiles(url) {
-        log.debug('Retrieving bookmark files for URL:', url);
         
         try {
             const bookmarks = await getBookmarks();
@@ -77,14 +72,11 @@
             );
             
             if (matchedBookmark) {
-                log.debug('Matched bookmark:', matchedBookmark);
                 const allFiles = await getBookmarkFiles();
                 const files = allFiles[matchedBookmark.url] || [];
-                log.debug('Found files:', files.length);
                 return { success: true, files, bookmark: matchedBookmark };
             }
             
-            log.debug('No matching bookmark found');
             return { success: false, files: [], bookmark: null };
         } catch (error) {
             log.error('Retrieval error:', error);
@@ -92,60 +84,7 @@
         }
     }
 
-    function injectBookmarkFiles(webview, files) {
-        if (!files || files.length === 0) {
-            log.debug('❌ No files to inject');
-            return false;
-        }
-    
-        files.forEach(file => {
-            log.debug('📁 File Details:', {
-                name: file.filename,
-                type: file.filename.endsWith('.css') ? 'CSS' : 'JavaScript',
-                contentLength: file.content?.length || 0,
-                content: file.content // Log actual content
-            });
-        });
-    
-        const injectionScript = files.map(file => {
-            log.debug(`💉 Preparing to inject: ${file.filename}`);
-            
-            if (file.filename.endsWith('.css')) {
-                log.debug(`🎨 CSS Content for ${file.filename}:`, file.content);
-                return `
-                    (() => {
-                        const style = document.createElement('style');
-                        style.textContent = ${JSON.stringify(file.content)};
-                        document.head.appendChild(style);
-                        console.log('CSS Injected: ${file.filename}');
-                    })();
-                `;
-            }
-            
-            if (file.filename.endsWith('.js')) {
-                log.debug(`📜 JS Content for ${file.filename}:`, file.content);
-                return `
-                    (() => {
-                        const script = document.createElement('script');
-                        script.textContent = ${JSON.stringify(file.content)};
-                        document.body.appendChild(script);
-                        console.log('JS Injected: ${file.filename}');
-                    })();
-                `;
-            }
-            
-            return '';
-        }).join('\n');
-    
-        try {
-            webview.executeJavaScript(injectionScript);
-            log.debug('✅ Successfully injected files with content');
-            return true;
-        } catch (error) {
-            log.error('❌ Injection failed:', error);
-            return false;
-        }
-    }
+
     
 
     function setupWebviewOptimizations(webview) {
@@ -166,13 +105,11 @@
             try {
                 const currentUrl = webview.getURL();
                 const normalizedUrl = normalizeUrl(currentUrl);
-                log.debug('Starting optimization for URL:', normalizedUrl);
                 
                 const fileRetrievalResult = await retrieveBookmarkFiles(normalizedUrl);
                 
                 if (fileRetrievalResult.success && fileRetrievalResult.files.length > 0) {
-                    const injectionResult = injectBookmarkFiles(webview, fileRetrievalResult.files);
-                    log.debug('Injection completed:', injectionResult);
+                    const injectionResult = window.injectBookmarkFiles(webview, fileRetrievalResult.files);
                     isOptimized = injectionResult;
                 }
             } catch (error) {
@@ -183,21 +120,17 @@
         };
 
         webview.addEventListener('did-finish-load', () => {
-            log.debug('Webview finished loading:', webview.src);
             setTimeout(() => handleOptimizations(webview), 100);
         });
 
         webview.addEventListener('did-start-loading', () => {
-            log.debug('Webview started loading:', webview.src);
         });
     }
 
     function createTab(url = DEFAULT_URL) {
-        log.debug('Creating new tab for URL:', url);
         const tabId = 'tab-' + Date.now();
-     
+        
         // Create tab button
-        log.debug('Creating tab elements for ID:', tabId);
         const tabButton = document.createElement('div');
         tabButton.className = 'tab';
         tabButton.setAttribute('data-tab-id', tabId);
@@ -205,7 +138,7 @@
             <span class="tab-title">New Tab</span>
             <span class="tab-close">×</span>
         `;
-     
+        
         // Add to DOM
         const newTabBtn = document.getElementById('newTabBtn');
         if (!newTabBtn) {
@@ -213,17 +146,19 @@
             return;
         }
         newTabBtn.parentNode.insertBefore(tabButton, newTabBtn);
-     
+        
         // Create webview container
         const webviewContainer = document.createElement('div');
         webviewContainer.className = 'webview-container';
         webviewContainer.id = tabId;
-     
-        // Create webview
+        
+        // Create webview with DevTools support
         const webview = document.createElement('webview');
-        webview.src = url.startsWith('http') ? url : `file://${__dirname}/${url}`;
+webview.setAttribute('webpreferences', 'webSecurity=yes, devTools=true');
+webview.setAttribute('allowpopups', 'true');
+webview.src = url.startsWith('http') ? url : `file://${__dirname}/${url}`;
         webviewContainer.appendChild(webview);
-     
+        
         // Add container to DOM
         const tabContent = document.querySelector('.tab-content');
         if (!tabContent) {
@@ -231,45 +166,41 @@
             return;
         }
         tabContent.appendChild(webviewContainer);
-     
+        
         // Update tabs array
         tabs.push({ id: tabId, url, title: 'New Tab' });
-        log.debug('Added tab to tracking array:', { id: tabId, url });
-     
+        
         // Event Listeners
         webview.addEventListener('page-title-updated', (e) => {
-            log.debug('Title updated for tab:', tabId, e.title);
             const tab = tabs.find(t => t.id === tabId);
             if (tab) {
                 tab.title = e.title;
                 tabButton.querySelector('.tab-title').textContent = e.title;
             }
         });
-     
+        
         webview.addEventListener('dom-ready', () => {
-            log.debug('DOM ready for tab:', tabId);
             setupWebviewOptimizations(webview);
+            
+         
         });
-     
+        
         // Tab button click handlers
         tabButton.addEventListener('click', (e) => {
             if (!e.target.classList.contains('tab-close')) {
-                log.debug('Tab clicked:', tabId);
                 setActiveTab(tabId);
             }
         });
-     
+        
         tabButton.querySelector('.tab-close').addEventListener('click', () => {
-            log.debug('Close clicked for tab:', tabId);
             closeTab(tabId);
         });
-     
+        
         // Set as active tab
-        log.debug('Setting as active tab:', tabId);
         setActiveTab(tabId);
-     
+        
         return { webview, tabId }; // Return for potential use by caller
-     }
+    }
 
     function setActiveTab(tabId) {
         document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
