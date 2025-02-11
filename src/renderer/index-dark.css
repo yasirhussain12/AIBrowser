@@ -1,0 +1,63 @@
+body {
+    background-color: #1a1a1a;
+}
+
+.tab-bar {
+    background: #2d2d2d;
+}
+
+.window-control-btn {
+    color: #b3b3b3;
+}
+
+.window-control-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+#closeBtn:hover {
+    background: #ff5f57;
+    color: white;
+}
+
+#settingsBtn:hover {
+    background: #404040;
+    border-radius: 5px;
+}
+
+.tab {
+    background: #3d3d3d;
+    color: #ffffff;
+}
+
+.tab.active {
+    background: #1a1a1a;
+    border: 1px solid #404040;
+    border-bottom: none;
+}
+
+.tab-close:hover {
+    background: #555;
+}
+
+#newTabBtn {
+    color: #b3b3b3;
+}
+
+#newTabBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+#newTabBtn:active {
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+    transform: translateY(1px);
+}
+
+.tabs-section::-webkit-scrollbar-thumb {
+    background: #666;
+}
+
+.tabs-section::-webkit-scrollbar-thumb:hover {
+    background: #888;
+}

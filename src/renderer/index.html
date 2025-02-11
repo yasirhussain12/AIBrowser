@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Browser App</title>
+    <!-- In the <head> section of index.html -->
+<link rel="stylesheet" href="index-base.css">
+<link rel="stylesheet" href="index-light.css" id="theme-light">
+<link rel="stylesheet" href="index-dark.css" id="theme-dark">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+
+<body>
+    <div class="tab-bar">
+        <div class="tabs-section">
+            <button id="settingsBtn">⚙️</button>
+            <button id="newTabBtn">+</button>
+        </div>
+        <div class="window-controls">
+            <button class="window-control-btn" id="minimizeBtn" title="Minimize">
+                <span class="material-icons">remove</span>
+            </button>
+            <button class="window-control-btn" id="maximizeBtn" title="Maximize">
+                <span class="material-icons">crop_square</span>
+            </button>
+            <button class="window-control-btn" id="closeBtn" title="Close">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+    </div>
+    <div class="tab-content"></div>
+
+    <script src="index.js"></script>
+    <script src="localStorage.js"></script>
+    <script src="tabs/tab.js"></script>
+</body>
+
+</html>

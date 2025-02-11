@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modern New Tab</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+ <link rel="stylesheet" href="newtab.css">
+</head>
+<body>
+    <div class="container">
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Search Google or type a URL">
+      </div>
+      <div class="bookmarks">
+        <div class="bookmarks-header">
+          <button id="add-bookmark">Add Bookmark</button>
+        </div>
+        <div class="bookmarks-grid" id="bookmark-list"></div>
+      </div>
+    </div>
+  
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="loading-spinner"></div>
+    </div>
+  
+    <div class="popup" id="bookmark-popup">
+      <h3 style="margin-top: 0;">Add Bookmark</h3>
+      <input type="text" id="bookmark-name" placeholder="Bookmark Name">
+      <input type="text" id="bookmark-url" placeholder="Bookmark URL">
+      <div class="error-message" id="url-error"></div>
+      <label>
+        <input type="checkbox" id="bookmark-default">
+        Show on New Tab page
+      </label>
+      <div class="popup-buttons">
+        <button id="cancel-bookmark">Cancel</button>
+        <button id="save-bookmark">Save</button>
+      </div>
+      <input type="hidden" id="editing-index" value="">
+    </div>
+    <div id="error-dialog" title="Connection Error" style="display:none;">
+        <p>Unable to load the website. Please check if the URL is correct and the website is accessible.</p>
+    </div>
+
+    <script src="localStorage.js"></script>
+<script>
+  // Initialize registry before any other code runs
+  window.dbRegistry = window.dbRegistry || {
+    ready: new Promise(r => window.addEventListener('dbReady', r))
+  };
+</script>
+<script src="newtab.js"></script>
+
+   
+  </body>
+  </html>

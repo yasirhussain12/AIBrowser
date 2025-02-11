@@ -1,0 +1,347 @@
+/* Modern Minimalist Theme */
+:root {
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --bg-color: #f8fafc;
+  --surface-color: #ffffff;
+  --border-color: #e2e8f0;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --success-color: #10b981;
+  --success-hover: #059669;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+/* Reset and Global Styles */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg-color);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* Container Layout */
+.container {
+  display: flex;
+  height: 100vh;
+  background: var(--bg-color);
+}
+
+/* Common Section Styles */
+.section-header {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+
+/* Left Section: Bookmark List */
+.bookmark-list {
+  width: 20%;
+  background-color: var(--surface-color);
+  border-right: 1px solid var(--border-color);
+  padding: 1.25rem;
+  overflow-y: auto;
+}
+
+.bookmark-item {
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bookmark-item:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.bookmark-item.active {
+  background-color: #f0f9ff;
+  border-color: var(--primary-color);
+}
+
+.bookmark-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.bookmark-actions {
+  margin-left: auto;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.bookmark-item:hover .bookmark-actions {
+  opacity: 1;
+}
+
+/* Add Bookmark Button */
+#add-bookmark-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--success-color);
+  border: none;
+  border-radius: 0.5rem;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 1.25rem;
+}
+
+#add-bookmark-btn:hover {
+  background-color: var(--success-hover);
+  transform: translateY(-1px);
+}
+
+/* Middle Section: File List */
+.file-list {
+  width: 20%;
+  background-color: var(--surface-color);
+  border-right: 1px solid var(--border-color);
+  padding: 1.25rem;
+  overflow-y: auto;
+}
+
+.drop-area {
+  border: 2px dashed var(--border-color);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  text-align: center;
+  margin-bottom: 1.25rem;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.drop-area:hover {
+  border-color: var(--primary-color);
+  background: #f0f9ff;
+}
+
+.file-item {
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.file-item:hover {
+  transform: translateX(2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.file-item.active {
+  background-color: #f0f9ff;
+  border-color: var(--primary-color);
+}
+
+.file-item.dragging {
+  opacity: 0.9;
+  transform: scale(1.02);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+}
+
+.drag-placeholder {
+  height: 3rem;
+  background: #f0f9ff;
+  border: 2px dashed var(--primary-color);
+  border-radius: 0.5rem;
+  margin: 0.25rem 0;
+}
+
+/* Right Section: Editor */
+.editor-section {
+  width: 60%;
+  padding: 1.25rem;
+  background-color: var(--surface-color);
+  display: flex;
+  flex-direction: column;
+}
+
+#codeEditor {
+  flex-grow: 1;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  background-color: #fafafa;
+  resize: none;
+  transition: all 0.2s ease;
+}
+
+#codeEditor:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Save Button */
+#saveButton {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-md);
+}
+
+#saveButton:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Dragbars */
+.dragbar {
+  width: 4px;
+  background-color: var(--border-color);
+  cursor: col-resize;
+  transition: background-color 0.2s ease;
+}
+
+.dragbar:hover {
+  background-color: var(--primary-color);
+}
+
+/* File Controls */
+.file-controls {
+  display: flex;
+  gap: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.file-item:hover .file-controls {
+  opacity: 1;
+}
+
+.icon-btn {
+  padding: 0.25rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.icon-btn:hover {
+  color: var(--primary-color);
+}
+
+/* Popup Styles */
+.popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.popup-content {
+  background: var(--surface-color);
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: var(--shadow-lg);
+  width: 24rem;
+  max-width: 90vw;
+}
+
+.popup-content input[type="text"],
+.popup-content input[type="url"] {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  margin: 0.5rem 0 1rem;
+  transition: all 0.2s ease;
+}
+
+.popup-content input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+.drop-line {
+  position: absolute;
+  width: calc(100% - 2.5rem);  /* Accounting for container padding */
+  height: 2px;
+  background-color: var(--primary-color);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 1000;
+}
+
+.drop-line::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  background-color: var(--primary-color);
+  border-radius: 50%;
+}
+
+.drop-line.show {
+  opacity: 1;
+}
+
+/* Make sure file container has relative positioning */
+#filesContainer {
+  position: relative;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .bookmark-list,
+  .file-list,
+  .editor-section {
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+}

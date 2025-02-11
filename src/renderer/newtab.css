@@ -1,0 +1,317 @@
+body {
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    color: #333;
+  }
+  
+  .container {
+    width: 90%;
+    max-width: 900px;
+    margin-top: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .search-bar {
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 40px;
+  }
+  
+  .search-bar input {
+    width: 100%;
+    padding: 15px 25px;
+    font-size: 16px;
+    border: none;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .search-bar input:focus {
+    outline: none;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
+  
+  .bookmarks {
+    width: 100%;
+    margin-top: 20px;
+  }
+  
+  .bookmarks-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  #add-bookmark {
+    padding: 10px 20px;
+    font-size: 14px;
+    background-color: #4285f4;
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  #add-bookmark:hover {
+    background-color: #3367d6;
+    transform: translateY(-2px);
+  }
+  
+  .bookmarks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .bookmark-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 15px 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .bookmark-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+  }
+  
+  .bookmark-icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+  }
+  
+  .bookmark-name {
+    font-size: 12px;
+    color: #5f6368;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .bookmark-actions {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: none;
+    gap: 5px;
+  }
+  
+  .bookmark-item:hover .bookmark-actions {
+    display: flex;
+  }
+  
+  .action-button {
+    background: rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #5f6368;
+    font-size: 12px;
+    transition: all 0.2s ease;
+  }
+  
+  .action-button:hover {
+    background: rgba(0, 0, 0, 0.2);
+  }
+  
+  .popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 400px;
+  }
+  
+  /* Modified/Added styles for popup inputs and labels */
+  .popup input[type="text"] {
+    display: block;
+    margin-bottom: 15px;
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-sizing: border-box;
+  }
+  
+  .popup label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0;
+    border: none;
+  }
+  
+  .popup input[type="checkbox"] {
+    width: auto;
+    margin: 0 8px 0 0;
+    padding: 0;
+    cursor: pointer;
+    border: 1px solid #e0e0e0;
+    height: 16px;
+    width: 16px;
+  }
+  
+  .popup input.error {
+    border-color: #d93025;
+  }
+  
+  .error-message {
+    color: #d93025;
+    font-size: 12px;
+    margin-top: 5px;
+    display: none;
+  }
+  
+  .popup-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  
+  .popup button {
+    padding: 10px 20px;
+    font-size: 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  #save-bookmark {
+    background-color: #4285f4;
+    color: white;
+  }
+  
+  #cancel-bookmark {
+    background-color: #f1f3f4;
+    color: #5f6368;
+  }
+  
+  .popup button:hover {
+    transform: translateY(-2px);
+  }
+  
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  
+  .loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #4285f4;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  .bookmark-item.loading {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .ui-dialog {
+    padding: 0;
+    border: none;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+.ui-dialog .ui-dialog-titlebar {
+    background: #d93025;
+    color: white;
+    border: none;
+    border-radius: 0;
+    padding: 15px;
+}
+
+.ui-dialog .ui-dialog-content {
+    padding: 20px;
+    font-size: 14px;
+    color: #5f6368;
+}
+
+.ui-dialog .ui-dialog-titlebar-close {
+    display: none;
+}
+
+.ui-widget-overlay {
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 1;
+}
+
+.ui-dialog .ui-dialog-buttonpane {
+    margin-top: 0;
+    padding: .3em 1em .5em .4em;
+    border-top: 1px solid #e0e0e0;
+}
+
+.ui-dialog .ui-dialog-buttonpane button {
+    padding: 8px 20px;
+    font-size: 14px;
+    background-color: #4285f4;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: .5em .4em .5em 0;
+}
+
+.ui-dialog .ui-dialog-buttonpane button:hover {
+    background-color: #3367d6;
+}

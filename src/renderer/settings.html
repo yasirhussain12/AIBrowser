@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Settings Page</title>
+  <link rel="stylesheet" href="settings.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+
+<body>
+  <div class="container">
+    <!-- Left Section: Bookmark List with Add Bookmark button -->
+    <div class="bookmark-list" id="bookmarkList">
+      <button id="add-bookmark-btn">Add Bookmark</button>
+      <div id="bookmark-items"></div>
+    </div>
+
+    <!-- Dragbar between left and middle -->
+    <div id="dragbar1" class="dragbar"></div>
+
+    <!-- Middle Section: File List and Drop Area -->
+    <div class="file-list" id="fileList">
+      <h3>Files</h3>
+      <div id="dropArea" class="drop-area">
+        Drag & Drop CSS/JS files here <br> or click to add manually
+      </div>
+      <input type="file" id="fileInput" style="display:none" accept=".css,.js" multiple>
+      <div class="file-actions">
+        <button id="create-file-btn" class="icon-btn">
+          <i class="fas fa-plus"></i> New File
+        </button>
+      </div>
+      <div id="filesContainer"></div>
+    </div>
+
+
+    <!-- New File Creation Popup -->
+    <div id="file-popup" class="popup" style="display:none;">
+      <div class="popup-content">
+        <h3>Create New File</h3>
+        <div>
+          <label>Filename:
+            <input type="text" id="file-name">
+          </label>
+        </div>
+        <div>
+          <label>Type:
+            <select id="file-type">
+              <option value=".js">JavaScript (.js)</option>
+              <option value=".css">CSS (.css)</option>
+            </select>
+          </label>
+        </div>
+        <div id="filename-error" style="display:none; color:red;"></div>
+        <div>
+          <button id="save-file">Create</button>
+          <button id="cancel-file">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dragbar between middle and right -->
+    <div id="dragbar2" class="dragbar"></div>
+
+    <!-- Right Section: Code Editor -->
+    <div class="editor-section" id="editorSection">
+      <h3 id="editorFilename">File Editor</h3>
+      <textarea id="codeEditor" placeholder="Select a file to display its content..."></textarea>
+      <button id="saveButton">Save</button>
+    </div>
+  </div>
+
+  <!-- Bookmark Popup for adding/editing a bookmark -->
+  <div id="bookmark-popup" class="popup" style="display:none;">
+    <div class="popup-content">
+      <h3>Add Bookmark</h3>
+      <div>
+        <label>Name:
+          <input type="text" id="bookmark-name">
+        </label>
+      </div>
+      <div>
+        <label>URL:
+          <input type="text" id="bookmark-url">
+        </label>
+      </div>
+      <div>
+        <label>Default:
+          <input type="checkbox" id="bookmark-default">
+        </label>
+      </div>
+      <input type="hidden" id="editing-index" value="">
+      <div id="url-error" style="display:none; color:red;"></div>
+      <div>
+        <button id="save-bookmark">Save</button>
+        <button id="cancel-bookmark">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="localStorage.js"></script>
+  <script src="settings.js"></script>
+  <script src="./options/bookmark-manager.js"></script>
+  <script src="./options/file-manager.js"></script>
+
+  
+
+
+</body>
+
+</html>
