@@ -21,7 +21,7 @@ function createWindow() {
             webviewTag: true,
             experimentalFeatures: true,
             enableBlinkFeatures: 'PrefetchDNSOnLinkHover',
-            devTools: false,
+            devTools: true,
             enableRemoteModule: true
         }
     });
