@@ -45,3 +45,30 @@ const sendPageDataToIframe = () => {
         data: elementsData
     }, '*');
 };
+
+// Add message listener in parent
+// Listen for injection requests
+window.addEventListener('message', (event) => {
+    if (event.data.type === 'INJECT_CODE_TO_TAB') {
+        const activeWebview = document.querySelector('.webview-container.active webview');
+        if (activeWebview) {
+            const code = event.data.code;
+            
+            // If it's CSS
+            if (code.includes('css')) {
+                const cssCode = code.replace(/```css|```/g, '').trim();
+                activeWebview.executeJavaScript(`
+                    const style = document.createElement('style');
+                    style.textContent = \`${cssCode}\`;
+                    document.head.appendChild(style);
+                `);
+            }
+            
+            // If it's JavaScript
+            if (code.includes('javascript')) {
+                const jsCode = code.replace(/```javascript|```/g, '').trim();
+                activeWebview.executeJavaScript(jsCode);
+            }
+        }
+    }
+});

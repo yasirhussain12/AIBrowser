@@ -6,8 +6,24 @@
   <title>Modern New Tab</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
- <link rel="stylesheet" href="newtab.css">
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+  <link rel="stylesheet" href="newtab.css">
+  <style>
+    /* Add some basic styling for the webview container */
+    #webAgent-container {
+      width: 100%;
+      height: 400px; /* Adjust height as needed */
+      margin-top: 20px; /* Add some space above the chatbot */
+      border: 1px solid #ccc; /* Optional border */
+      overflow: hidden; /* To contain the webview */
+    }
+
+    webview {
+      display: block; /* Ensure webview fills the container */
+      width: 100%;
+      height: 100%;
+    }
+  </style>
 </head>
 <body>
   <!-- In .tabs-section div -->
@@ -21,12 +37,22 @@
         </div>
         <div class="bookmarks-grid" id="bookmark-list"></div>
       </div>
+
+      <!-- Container for webAgent.html and webview -->
+      <div id="webAgent-container">
+        <webview
+          id="webAgentView"
+          src="./tabs/webAgent/webAgent.html"  <!-- Path to webAgent.html, relative to newtab.html -->
+          preload="./tabs/webAgent/preload.js" <!-- Path to preload.js, relative to newtab.html -->
+          style="width: 100%; height: 100%;"
+        ></webview>
+      </div>
     </div>
-  
+
     <div class="loading-overlay" id="loading-overlay">
       <div class="loading-spinner"></div>
     </div>
-  
+
     <div class="popup" id="bookmark-popup">
       <h3 style="margin-top: 0;">Add Bookmark</h3>
       <input type="text" id="bookmark-name" placeholder="Bookmark Name">
@@ -47,14 +73,24 @@
     </div>
 
     <script src="localStorage.js"></script>
-<script>
-  // Initialize registry before any other code runs
-  window.dbRegistry = window.dbRegistry || {
-    ready: new Promise(r => window.addEventListener('dbReady', r))
-  };
-</script>
-<script src="newtab.js"></script>
+    <script>
+      // Initialize registry before any other code runs
+      window.dbRegistry = window.dbRegistry || {
+        ready: new Promise(r => window.addEventListener('dbReady', r))
+      };
 
-   
-  </body>
-  </html>
+      // Add this after webview element
+const webview = document.getElementById('webAgentView');
+
+webview.addEventListener('dom-ready', () => {
+    // Execute getAllElements in webview context
+    webview.executeJavaScript(`(${getAllElements.toString()})()`)
+        .then(elements => {
+            // Send elements to webAgent.html
+            webview.send('PAGE_ELEMENTS', elements);
+        });
+});
+    </script>
+    <script src="newtab.js"></script>
+</body>
+</html>
