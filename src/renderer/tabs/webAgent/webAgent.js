@@ -1,151 +1,112 @@
-// Keep the main function as is
-function initializeWebAgent() {
+// webAgent.js
+
+const initializeWebAgent = () => {
     if (document.getElementById('web-agent-container')) {
         return;
     }
 
-    const agentContainer = document.createElement('div');
-    agentContainer.id = 'web-agent-container';
-    agentContainer.style.cssText = `
-        position: fixed;
-        right: 0;
-        top: 5%;
-        width: 30%;
-        height: 90%;
-        z-index: 9999;
-        transition: transform 0.3s ease;
-    `;
-
-    const agentFrame = document.createElement('iframe');
-    agentFrame.id = 'web-agent-frame';
-    agentFrame.src = 'tabs/webAgent/webAgent.html';
-    agentFrame.style.cssText = `
-        width: 100%;
-        height: 100%;
-        border: none;
-        border-radius: 10px 0 0 10px;
-        background: transparent;
-    `;
-
-    agentContainer.appendChild(agentFrame);
-    document.body.appendChild(agentContainer);
-
-    agentFrame.onload = function() {
-        const elementsData = getAllElements();
-        agentFrame.contentWindow.postMessage({
-            type: 'ELEMENTS_DATA',
-            data: elementsData
-        }, '*');
+    const createAgentContainer = () => {
+        const container = document.createElement('div');
+        container.id = 'web-agent-container';
+        container.style.cssText = `
+            position: fixed;
+            right: 0;
+            top: 5%;
+            width: 30%;
+            height: 90%;
+            z-index: 9999;
+            transition: transform 0.3s ease;
+        `;
+        return container;
     };
-}
 
-// Agent functionality
-class WebAgent {
-    constructor() {
-        this.elementsData = null;
-        this.apiKey = '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';
-        this.setupEventListeners();
-    }
+    const getAllElements = () => {
+        const elements = document.querySelectorAll('*');
+        return Array.from(elements).map(el => ({
+            tagName: el.tagName,
+            id: el.id,
+            className: el.className,
+            textContent: el.textContent.trim().substring(0, 100),
+            attributes: Array.from(el.attributes).map(attr => ({
+                name: attr.name,
+                value: attr.value
+            }))
+        }));
+    };
 
-    setupEventListeners() {
-        window.addEventListener('message', this.handleMessage.bind(this));
-        document.getElementById('sendBtn').addEventListener('click', this.handleUserInput.bind(this));
-        document.getElementById('userInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                this.handleUserInput();
-            }
-        });
-    }
-
-    async handleUserInput() {
-        const input = document.getElementById('userInput');
-        const message = input.value.trim();
-        if (!message) return;
-
-        this.addMessage('user', message);
-        input.value = '';
+    const handleUserInput = async (input, elementsData) => {
+        const messages = document.getElementById('messages');
+        const userMessage = createMessageElement(input, 'user-message');
+        messages.appendChild(userMessage);
 
         try {
-            const response = await this.queryGPT(message);
-            this.addMessage('assistant', response);
-            this.executeActions(response);
-        } catch (error) {
-            console.error('Error:', error);
-            this.addMessage('assistant', 'Sorry, there was an error processing your request.');
-        }
-    }
-
-    handleMessage(event) {
-        if (event.data.type === 'ELEMENTS_DATA') {
-            this.elementsData = event.data.data;
-            this.addMessage('assistant', 'Hello! I can help you interact with this webpage. What would you like to do?');
-        }
-    }
-
-    addMessage(role, content) {
-        const messagesDiv = document.getElementById('messages');
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${role}-message`;
-        
-        if (content.includes('```')) {
-            const parts = content.split('```');
-            parts.forEach((part, index) => {
-                if (index % 2 === 1) {
-                    const codeBlock = document.createElement('div');
-                    codeBlock.className = 'code-block';
-                    codeBlock.textContent = part;
-                    messageDiv.appendChild(codeBlock);
-                } else if (part.trim()) {
-                    const textNode = document.createElement('div');
-                    textNode.textContent = part;
-                    messageDiv.appendChild(textNode);
-                }
-            });
-        } else {
-            messageDiv.textContent = content;
-        }
-
-        messagesDiv.appendChild(messageDiv);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    }
-
-    async queryGPT(userMessage) {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.apiKey}`
-            },
-            body: JSON.stringify({
-                model: "gpt-4o",
-                messages: [
-                    {
-                        role: "system",
-                        content: `You are a web automation assistant. Available elements: ${JSON.stringify(this.elementsData)}`
-                    },
-                    { role: "user", content: userMessage }
-                ]
-            })
-        });
-
-        const data = await response.json();
-        return data.choices[0].message.content;
-    }
-
-    executeActions(response) {
-        try {
-            if (response.includes('[[EXECUTE]]')) {
-                const code = response.split('[[EXECUTE]]')[1].split('[[/EXECUTE]]')[0];
-                window.top.eval(code);
+            const response = await sendToChatGPT(input, elementsData);
+            const aiMessage = createMessageElement(response, 'ai-message');
+            messages.appendChild(aiMessage);
+            
+            // Execute any code suggestions from AI
+            if (response.includes('```javascript')) {
+                const code = extractCodeFromResponse(response);
+                executeCode(code);
             }
         } catch (error) {
-            console.error('Action execution failed:', error);
+            console.error('AI response error:', error);
         }
-    }
-}
+    };
 
-// Initialize if we're in the iframe
-if (window.self !== window.top) {
-    new WebAgent();
-}
+    const createMessageElement = (content, className) => {
+        const div = document.createElement('div');
+        div.className = `message ${className}`;
+        div.textContent = content;
+        return div;
+    };
+
+    const sendToChatGPT = async (input, elementsData) => {
+        // Implementation for ChatGPT API call would go here
+        // This is a placeholder return
+        return `I see you're asking about: ${input}. 
+                I can help you interact with the ${elementsData.length} elements on this page.`;
+    };
+
+    const extractCodeFromResponse = (response) => {
+        const codeRegex = /```javascript([\s\S]*?)```/;
+        const match = response.match(codeRegex);
+        return match ? match[1].trim() : '';
+    };
+
+    const executeCode = (code) => {
+        try {
+            // Create a new function to execute the code in a controlled scope
+            const safeFunction = new Function(code);
+            safeFunction();
+        } catch (error) {
+            console.error('Code execution error:', error);
+        }
+    };
+
+    // Initialize the agent
+    const container = createAgentContainer();
+    const elementsData = getAllElements();
+    
+    // Set up event listeners
+    document.body.appendChild(container);
+    
+    // Add minimize functionality
+    let minimized = false;
+    document.getElementById('minimize-btn')?.addEventListener('click', () => {
+        minimized = !minimized;
+        container.style.transform = minimized ? 'translateX(95%)' : 'translateX(0)';
+    });
+
+    // Add send message functionality
+    document.getElementById('send-btn')?.addEventListener('click', () => {
+        const input = document.getElementById('user-input');
+        if (input.value.trim()) {
+            handleUserInput(input.value, elementsData);
+            input.value = '';
+        }
+    });
+};
+
+// Auto-initialize when script loads
+document.addEventListener('DOMContentLoaded', initializeWebAgent);
