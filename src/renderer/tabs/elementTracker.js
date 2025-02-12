@@ -19,14 +19,44 @@
     };
     // In the original tracking button setup
 function createTrackButton(webview, tabId) {
-    const button = document.createElement('button');
-    button.className = 'track-elements-btn';
-    button.innerHTML = '🔍';
-    button.style.cssText = 'position:absolute;right:10px;top:10px;z-index:1000;';
-    
-    button.addEventListener('click', () => {
-        initializeWebAgent();  // Add this line
-    });
+   // Create the button
+const button = document.createElement('button');
+button.className = 'track-elements-btn';
+button.innerHTML = '🔍';
+
+// Add base styles
+button.style.cssText = `
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    z-index: 10000;
+    padding: 8px;
+    border: none;
+    border-radius: 50%;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease; /* Smooth transition for hover effects */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+`;
+
+// Add hover effect using event listeners
+button.addEventListener('mouseenter', () => {
+    button.style.transform = 'scale(1.1)';
+    button.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+    button.style.backgroundColor = '#f0f0f0';
+});
+
+button.addEventListener('mouseleave', () => {
+    button.style.transform = 'scale(1)';
+    button.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
+    button.style.backgroundColor = '#ffffff';
+});
+
+// Click event
+button.addEventListener('click', () => {
+    console.log("button clicked");
+    initializeWebAgent();
+});
 
     const container = document.getElementById(tabId);
     container.style.position = 'relative';

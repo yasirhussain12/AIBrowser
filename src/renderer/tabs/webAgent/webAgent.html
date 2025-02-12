@@ -1,28 +1,26 @@
-<!-- webAgent.html -->
 <!DOCTYPE html>
 <html>
 <head>
     <title>Web Agent</title>
-    <link rel="stylesheet" href="webAgent.css">
+    <link rel="stylesheet" type="text/css" href="webAgent.css">
 </head>
 <body>
-    <div id="agent-wrapper">
-        <div id="agent-header">
-            <h3>AI Web Assistant</h3>
-            <button id="minimize-btn">_</button>
+    <div class="agent-container">
+        <div class="header">
+            <select id="modelSelector">
+                <option value="chatgpt-4o-latest" selected>GPT-4o Latest</option>
+                <option value="o3-mini">O3 Mini</option>
+            </select>
+            <button id="refreshElements">Refresh Elements</button>
         </div>
         
-        <div id="elements-panel">
-            <h4>Page Elements</h4>
-            <div id="elements-data"></div>
-        </div>
-
-        <div id="chat-interface">
-            <div id="messages"></div>
-            <div id="input-area">
-                <textarea id="user-input" 
-                          placeholder="Ask me about the webpage..."></textarea>
-                <button id="send-btn">Send</button>
+        <div id="elementTree" class="element-tree"></div>
+        
+        <div class="chat-container">
+            <div id="chatMessages" class="chat-messages"></div>
+            <div class="input-area">
+                <textarea id="commandInput" placeholder="Enter your command..."></textarea>
+                <button id="executeCommand">Execute</button>
             </div>
         </div>
     </div>
