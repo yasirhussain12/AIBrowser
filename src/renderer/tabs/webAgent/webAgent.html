@@ -153,6 +153,17 @@
       #toggle-code-button:hover{
         background-color: #0056b3;
       }
+    .iframe-resize-handle {
+        position: fixed;
+        right: 0; /* **Crucial:** Stick to the right edge */
+        top: 0;    /* Align to the top */
+        height: 100%; /* Full height */
+        width: 5px;
+        cursor: ew-resize;
+        background: rgba(0,0,0,0.2); /* Make it visible */
+        z-index: 10000;
+    }
+
 
   </style>
 </head>
@@ -166,21 +177,21 @@
     <button id="send-button">Send</button>
     <div id="loader"></div>
   </div>
-  <div id="post-injection-section">
-    <h2>Post-Injection Code (Editable by AI)</h2>
-    <div class="code-block">
-      <h3>CSS File</h3>
-      <pre id="post-injection-css">
-<!-- No CSS post-injection code yet. -->
-      </pre>
-    </div>
-    <div class="code-block">
-      <h3>JS File</h3>
-      <pre id="post-injection-js">
-<!-- No JS post-injection code yet. -->
-      </pre>
-    </div>
-  </div>
+  <div id="post-injection-section">     
+    <h2>Post-Injection Code (Editable by AI) <button class="section-close-btn">×</button></h2>     
+    <div class="code-block">       
+        <h3>CSS File</h3>       
+        <pre id="post-injection-css">
+            <!-- No CSS post-injection code yet. -->       
+        </pre>     
+    </div>     
+    <div class="code-block">       
+        <h3>JS File</h3>       
+        <pre id="post-injection-js">
+            <!-- No JS post-injection code yet. -->       
+        </pre>     
+    </div>   
+</div>
 
   <script>
     const chatContainer = document.getElementById('chat-container');
@@ -436,6 +447,11 @@ document.querySelector('button').click();
 
     // Initialize the memory system when the page loads
     MemorySystem.initialize();
+
+    document.querySelector('.section-close-btn').addEventListener('click', function() {
+    const section = document.getElementById('post-injection-section');
+    section.style.display = 'none';
+});
   </script>
 </body>
 </html>

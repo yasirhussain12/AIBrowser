@@ -194,3 +194,23 @@
       #toggle-code-button:hover{
         background-color: #0056b3;
       }
+
+      .section-close-btn {
+        float: right;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #ff4444;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 18px;
+        line-height: 1;
+        opacity: 0.8;
+        transition: all 0.2s;
+    }
+    
+    .section-close-btn:hover {
+        opacity: 1;
+        transform: scale(1.1);
+    }

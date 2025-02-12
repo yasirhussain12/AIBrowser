@@ -329,3 +329,17 @@ body {
 .track-elements-btn:hover {
   opacity: 1;
 }
+
+.iframe-resize-handle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: ew-resize;
+  background: transparent;
+}
+
+.iframe-resize-handle:hover {
+  background: rgba(0,0,0,0.1);
+}
