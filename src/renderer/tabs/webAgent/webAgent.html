@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WebAgent Chatbot</title>
+  <title>Claude WebAgent Chatbot</title>
   <style>
     /* Modern minimalist styling */
     body {
@@ -14,6 +14,7 @@
       flex-direction: column;
       height: 100vh;
     }
+
     #chat-container {
       flex-grow: 1;
       padding: 20px;
@@ -21,6 +22,7 @@
       border-bottom: 1px solid #ddd;
       background: #fff;
     }
+
     .message {
       margin-bottom: 15px;
       padding: 10px 15px;
@@ -29,17 +31,23 @@
       opacity: 0;
       animation: fadeIn 0.5s forwards;
     }
+
     @keyframes fadeIn {
-      to { opacity: 1; }
+      to {
+        opacity: 1;
+      }
     }
+
     .user-message {
       background-color: #d1e7dd;
       align-self: flex-end;
     }
+
     .bot-message {
       background-color: #e2e3e5;
       align-self: flex-start;
     }
+
     #input-area {
       display: flex;
       padding: 15px;
@@ -47,6 +55,7 @@
       align-items: center;
       border-top: 1px solid #ddd;
     }
+
     #user-input {
       flex-grow: 1;
       padding: 10px;
@@ -55,6 +64,7 @@
       font-size: 1em;
       margin-right: 10px;
     }
+
     #send-button {
       padding: 10px 20px;
       border: none;
@@ -65,9 +75,11 @@
       font-size: 1em;
       transition: background-color 0.3s ease;
     }
+
     #send-button:hover {
       background-color: #43a047;
     }
+
     /* Loader (spinner) */
     #loader {
       border: 4px solid #f3f3f3;
@@ -79,26 +91,43 @@
       display: none;
       margin-left: 10px;
     }
+
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
     }
-    /* Post-Injection Code Sections */
+    /* Floating, initially hidden, post-injection section */
     #post-injection-section {
-      background-color: #f4f4f4;
-      padding: 15px;
-      border-top: 1px solid #ddd;
-      font-family: monospace;
-    }
+        position: absolute; /* Changed to absolute */
+        top: 10px; /* Position from the top */
+        right: 10px; /* Position from the right */
+        background-color: rgba(244, 244, 244, 0.95); /* Slight transparency */
+        padding: 15px;
+        border: 1px solid #ddd;
+        font-family: monospace;
+        z-index: 1000; /* Ensure it's above other elements */
+        max-width: 95%; /* Limit width */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add a shadow */
+        display: none; /* Hidden by default */
+      }
+
     #post-injection-section h2 {
       margin-top: 0;
     }
+
     .code-block {
       margin-bottom: 15px;
+      overflow-x: auto; /* handles long lines of code in the blocks*/
     }
+
     .code-block h3 {
       margin: 5px 0;
     }
+
     .code-block pre {
       background: #eee;
       padding: 10px;
@@ -106,9 +135,29 @@
       white-space: pre-wrap;
       margin: 0;
     }
+
+    /* Toggle Button Styles */
+    #toggle-code-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 5px 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      z-index: 999; /* Ensure button is above chat */
+       font-size: 0.8em; /* Smaller font size */
+    }
+      #toggle-code-button:hover{
+        background-color: #0056b3;
+      }
+
   </style>
 </head>
 <body>
+    <button id="toggle-code-button">Show/Hide Code</button>
   <div id="chat-container">
     <!-- Chat messages will be appended here -->
   </div>
@@ -140,6 +189,13 @@
     const loader = document.getElementById('loader');
     const postInjectionCssDisplay = document.getElementById('post-injection-css');
     const postInjectionJsDisplay = document.getElementById('post-injection-js');
+    const toggleCodeButton = document.getElementById('toggle-code-button'); //toggle button
+    const postInjectionSection = document.getElementById('post-injection-section')
+
+    // Toggle visibility of the code section
+    toggleCodeButton.addEventListener('click', () => {
+      postInjectionSection.style.display = postInjectionSection.style.display === 'none' ? 'block' : 'none';
+    });
 
     // Global flag to ensure page elements are sent only with the first message.
     let isFirstMessage = true;
@@ -147,9 +203,9 @@
     console.log("webAgent.html script loaded. pageElements initialized:", pageElements);
 
     // API key (IMPORTANT: In production, do NOT hardcode API keys. Use environment variables.)
-    const apiKey = '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';
+    const apiKey = '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';
 
-    const systemPrompt = `You are a helpful Web Agent assisting with webpage interactions using CSS and Javascript. 
+    const systemPrompt = `You are Claude, an AI assistant specializing in web automation. Your role is to help users interact with web pages by generating appropriate CSS and JavaScript code. When users describe what they want to do on a webpage, analyze their request and provide the necessary code to accomplish their goal.
 
 When providing code:
 1. Use ONLY pure CSS/JS without any markdown syntax or code block markers
@@ -163,9 +219,7 @@ body { background: red; }
 
 [POST_INJECTION_JS_START]
 document.querySelector('button').click();
-[POST_INJECTION_JS_END]
-
-For non-webpage interactions, respond as a helpful assistant.`;
+[POST_INJECTION_JS_END]`;
 
     sendButton.addEventListener('click', sendMessage);
     userInput.addEventListener('keydown', function (event) {
@@ -185,7 +239,7 @@ For non-webpage interactions, respond as a helpful assistant.`;
       try {
         const botResponse = await getBotResponse(userMessageText);
         addBotMessage(botResponse.text);
-        
+
         // If CSS or JS injection code is available, update the UI and send to parent window
         if (botResponse.cssInjectionCode || botResponse.jsInjectionCode) {
           if (botResponse.cssInjectionCode) {
@@ -227,88 +281,132 @@ For non-webpage interactions, respond as a helpful assistant.`;
     function addBotMessage(message) {
       const messageDiv = document.createElement('div');
       messageDiv.classList.add('message', 'bot-message');
-      messageDiv.textContent = message;
+      // Handle if message is an object
+      if (typeof message === 'object') {
+        messageDiv.textContent = JSON.stringify(message, null, 2);
+      } else {
+        messageDiv.textContent = message;
+      }
       chatContainer.appendChild(messageDiv);
       chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
+    // Memory management system
+    const MemorySystem = {
+      maxMemorySize: 50, // Maximum number of messages to store
+
+      initialize() {
+        if (!localStorage.getItem('chatMemory')) {
+          localStorage.setItem('chatMemory', JSON.stringify([]));
+        }
+      },
+
+      saveMessage(role, content) {
+        const memory = this.getMemory();
+        memory.push({ role, content, timestamp: Date.now() });
+
+        // Remove oldest messages if exceeding maxMemorySize
+        while (memory.length > this.maxMemorySize) {
+          memory.shift();
+        }
+
+        localStorage.setItem('chatMemory', JSON.stringify(memory));
+      },
+
+      getMemory() {
+        return JSON.parse(localStorage.getItem('chatMemory') || '[]');
+      },
+
+      clearMemory() {
+        localStorage.setItem('chatMemory', JSON.stringify([]));
+      },
+
+      getRecentContext(messageCount = 5) {
+        const memory = this.getMemory();
+        return memory.slice(-messageCount);
+      }
+    };
+
+    // Update getBotResponse function to use Claude API
     async function getBotResponse(userMessage) {
-      console.log("getBotResponse called. Current pageElements:", pageElements);
-      
-      // Only attach pageElements with the first message.
-      let augmentedUserMessage;
-      if (isFirstMessage && pageElements.length > 0) {
-        augmentedUserMessage = `${userMessage}\n\nPage elements:\n${JSON.stringify(pageElements, null, 2)}`;
-        isFirstMessage = false;
-      } else {
-        augmentedUserMessage = userMessage;
-      }
-      
-      const apiUrl = 'https://api.openai.com/v1/chat/completions';
-      const headers = {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      };
+      try {
+        console.log('Starting API request for message:', userMessage);
+        const recentContext = MemorySystem.getRecentContext();
 
-      const requestBody = JSON.stringify({
-        model: "gpt-4o",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: augmentedUserMessage }
-        ]
-      });
+        // Format the request according to Claude's API requirements
+        const requestBody = {
+          model: "claude-3-sonnet-20240229",
+          max_tokens: 4096,
+          messages: [{
+            role: "user",
+            content: userMessage
+          }],
+          system: systemPrompt
+        };
 
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: headers,
-        body: requestBody
-      });
+        // Save user message to memory
+        MemorySystem.saveMessage("user", userMessage);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      let botMessageText = data.choices[0].message.content;
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestBody)
+        });
 
-      // Extract CSS and JS injection code using custom markers
-      let cssInjectionCode = null;
-      let jsInjectionCode = null;
+        const data = await response.json();
+        console.log('API Response:', data);
 
-      const cssStartMarker = "[POST_INJECTION_CSS_START]";
-      const cssEndMarker = "[POST_INJECTION_CSS_END]";
-      const jsStartMarker = "[POST_INJECTION_JS_START]";
-      const jsEndMarker = "[POST_INJECTION_JS_END]";
-
-      // Extract CSS code if present
-      const cssStartIndex = botMessageText.indexOf(cssStartMarker);
-      const cssEndIndex = botMessageText.indexOf(cssEndMarker);
-      if (cssStartIndex !== -1 && cssEndIndex !== -1 && cssStartIndex < cssEndIndex) {
-        cssInjectionCode = botMessageText.substring(cssStartIndex + cssStartMarker.length, cssEndIndex).trim();
-        // Remove the extracted block from the message
-        botMessageText = botMessageText.slice(0, cssStartIndex) + botMessageText.slice(cssEndIndex + cssEndMarker.length);
-        botMessageText = botMessageText.trim();
-        if (!botMessageText) {
-          botMessageText = "Here is the code for post-injection:";
+        if (!response.ok) {
+          console.error('API Error:', data);
+          throw new Error(data.error?.message || 'Unknown error occurred');
         }
+
+        // Check for the correct response format
+        if (!data || !data.content || !data.content[0] || !data.content[0].text) {
+          console.error('Invalid API response:', data);
+          throw new Error('Invalid response format from API');
+        }
+
+        // Get the message content from the first message
+        const botMessageText = data.content[0].text;
+
+        // Save bot response to memory
+        if (botMessageText) {
+          MemorySystem.saveMessage("assistant", botMessageText);
+        }
+
+        return {
+          text: botMessageText,
+          cssInjectionCode: extractCode(botMessageText, "CSS"),
+          jsInjectionCode: extractCode(botMessageText, "JS")
+        };
+      } catch (error) {
+        console.error('Error in getBotResponse:', error);
+        throw error;
+      }
+    }
+
+    // Helper function to extract code blocks
+    function extractCode(message, type) {
+      if (!message || typeof message !== 'string') {
+        console.log('No valid message to extract code from');
+        return null;
       }
 
-      // Extract JS code if present
-      const jsStartIndex = botMessageText.indexOf(jsStartMarker);
-      const jsEndIndex = botMessageText.indexOf(jsEndMarker);
-      if (jsStartIndex !== -1 && jsEndIndex !== -1 && jsStartIndex < jsEndIndex) {
-        jsInjectionCode = botMessageText.substring(jsStartIndex + jsStartMarker.length, jsEndIndex).trim();
-        botMessageText = botMessageText.slice(0, jsStartIndex) + botMessageText.slice(jsEndIndex + jsEndMarker.length);
-        botMessageText = botMessageText.trim();
-        if (!botMessageText) {
-          botMessageText = "Here is the code for post-injection:";
-        }
+      const startMarker = type === "CSS" ? "[POST_INJECTION_CSS_START]" : "[POST_INJECTION_JS_START]";
+      const endMarker = type === "CSS" ? "[POST_INJECTION_CSS_END]" : "[POST_INJECTION_JS_END]";
+
+      const startIndex = message.indexOf(startMarker);
+      const endIndex = message.indexOf(endMarker);
+
+      if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+        return message.substring(startIndex + startMarker.length, endIndex).trim();
       }
-      
-      return { 
-        text: botMessageText, 
-        cssInjectionCode: cssInjectionCode, 
-        jsInjectionCode: jsInjectionCode 
-      };
+      return null;
     }
 
     // Listener to receive element data from newtab.html
@@ -335,6 +433,9 @@ For non-webpage interactions, respond as a helpful assistant.`;
         );
       }
     };
+
+    // Initialize the memory system when the page loads
+    MemorySystem.initialize();
   </script>
 </body>
 </html>
