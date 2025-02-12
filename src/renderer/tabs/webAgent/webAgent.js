@@ -1,153 +1,125 @@
+// webAgent.js
+import { geminiAgent } from './geminiAgent.js';
+import { claudeAgent } from './claudeAgent.js';
+import { openAIAgent } from './openAIAgent.js';
+
 const chatContainer = document.getElementById('chat-container');
 const userInput = document.getElementById('user-input');
 const sendButton = document.getElementById('send-button');
 const loader = document.getElementById('loader');
 const postInjectionCssDisplay = document.getElementById('post-injection-css');
 const postInjectionJsDisplay = document.getElementById('post-injection-js');
-const webAgentContainer = document.getElementById('web-agent-container');
-const topBar = document.getElementById('top-bar');
-const closeButton = document.getElementById('close-button');
-const resizeHandle = document.getElementById('resize-handle'); // Resizer
-const fileListContainer = document.getElementById('file-list-container');
+const toggleCodeButton = document.getElementById('toggle-code-button');
 const postInjectionSection = document.getElementById('post-injection-section');
-const codeAndFilesContainer = document.getElementById('code-and-files-container');
+const providerSelect = document.getElementById('provider-select');
 
-let isDragging = false;
-let isResizing = false;
-let initialX;
-let initialWidth;
-// --- Close Button Functionality ---
-closeButton.addEventListener('click', () => {
-    // Assuming this iframe is embedded in another page, post a message to close.
-    window.parent.postMessage({ type: 'CLOSE_IFRAME' }, '*');
+// Global state
+let isFirstMessage = true;
+let pageElements = [];
+let currentProvider = 'gemini';
+
+// Listener to receive element data from newtab.html
+window.addEventListener('message', (event) => {
+  console.log("Message received in webAgent:", event.data);
+  if (event.data.type === 'PAGE_ELEMENTS' && event.data.action === 'UPDATE_ELEMENTS') {
+    pageElements = event.data.elements;
+    console.log("Updated page elements:", pageElements);
+  }
 });
 
-// --- Dragging (from Top Bar) ---
-topBar.addEventListener('mousedown', (event) => {
-    // Only start dragging if NOT on the close button or resize handle
-    if (event.target !== closeButton && event.target !== resizeHandle) {
-      isDragging = true;
-      initialX = event.clientX; // Store initial mouse position
-      // Prevent text selection during drag
-      event.preventDefault();
-    }
+// Event Listeners
+toggleCodeButton.addEventListener('click', () => {
+  postInjectionSection.style.display = postInjectionSection.style.display === 'none' ? 'block' : 'none';
 });
-
-document.addEventListener('mousemove', (event) => {
-    if (isDragging) {
-      const deltaX = event.clientX - initialX;
-      initialX = event.clientX; // Update initialX for next move
-      // Calculate new right position, ensuring it stays within bounds
-      let newRight = (parseFloat(webAgentContainer.style.right || '0') * -1) + deltaX;
-
-      // Convert container width to pixels for boundary calculations
-      let containerWidthPixels = webAgentContainer.offsetWidth;
-        //Check minimum with
-      let parentWidth = window.parent.innerWidth;
-      newRight = Math.max(newRight, 0);  // Prevent moving too far left
-      newRight = Math.min(newRight, parentWidth - containerWidthPixels); // Prevent going offscreen
-
-      // Update position using right, convert to a negative value for CSS
-      webAgentContainer.style.right = `${-newRight}px`;
-    }
-     if (isResizing) {
-         const deltaX = event.clientX - initialX;
-         const newWidth = Math.max(initialWidth + deltaX, 200); // Minimum width
-         webAgentContainer.style.width = `${newWidth}px`;
-         event.preventDefault();
-     }
-});
-
- //Resizing section
-resizeHandle.addEventListener('mousedown', (e) => {
-    isResizing = true;
-    initialX = e.clientX;
-    initialWidth = webAgentContainer.offsetWidth;
-    e.preventDefault(); // Prevent text selection
-});
-//Combined mouse up
-document.addEventListener('mouseup', () => {
-    isDragging = false;
-    isResizing = false;
-});
-// --- File List and Code Section Toggle ---
-function toggleFilesAndCode(show) {
-
-    if (show) {
-        fileListContainer.style.display = 'block';
-        postInjectionSection.style.display = 'block';
-         codeAndFilesContainer.style.display = "flex"
-        webAgentContainer.style.width = '80%';
-
-        // Trigger a resize to update layout (if needed by your application)
-        window.dispatchEvent(new Event('resize'));
-    } else {
-
-        fileListContainer.style.display = 'none';
-        postInjectionSection.style.display = 'none';
-        codeAndFilesContainer.style.display = "none"
-        webAgentContainer.style.width = '30%'; //revert back original width.
-          // Trigger a resize
-        window.dispatchEvent(new Event('resize'));
-    }
-}let isFirstMessage = true;
-let pageElements = []; // Store page element data from newtab.html
-console.log("webAgent.html script loaded. pageElements initialized:", pageElements);
-
-// API key (IMPORTANT: In production, do NOT hardcode API keys. Use environment variables.)
-const apiKey = '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';
-
-const systemPrompt = `You are Claude, an AI assistant specializing in web automation. Your role is to help users interact with web pages by generating appropriate CSS and JavaScript code. When users describe what they want to do on a webpage, analyze their request and provide the necessary code to accomplish their goal.
-
-When providing code:
-1. Use ONLY pure CSS/JS without any markdown syntax or code block markers
-2. Place CSS between [POST_INJECTION_CSS_START] and [POST_INJECTION_CSS_END]
-3. Place JS between [POST_INJECTION_JS_START] and [POST_INJECTION_JS_END]
-
-Example format:
-[POST_INJECTION_CSS_START]
-body { background: red; }
-[POST_INJECTION_CSS_END]
-
-[POST_INJECTION_JS_START]
-document.querySelector('button').click();
-[POST_INJECTION_JS_END]`;
 
 sendButton.addEventListener('click', sendMessage);
 userInput.addEventListener('keydown', function (event) {
   if (event.key === 'Enter') sendMessage();
 });
 
+providerSelect.addEventListener('change', (e) => {
+  currentProvider = e.target.value;
+  console.log('Switched to provider:', currentProvider);
+  
+  // Reset state when switching providers
+  MemorySystem.clearMemory();
+  isFirstMessage = true;
+
+  // Notify user of provider change
+  addBotMessage(`Switched to ${currentProvider}. How can I help you?`);
+});
+
 async function sendMessage() {
   const userMessageText = userInput.value;
   if (!userMessageText.trim()) return;
 
-  // Append the user's message to the chat container
   addUserMessage(userMessageText);
   userInput.value = '';
-
-  // Show the loader animation while waiting for response
   showLoader();
+
   try {
-    const botResponse = await getBotResponse(userMessageText);
-    addBotMessage(botResponse.text);
-     const showFiles = botResponse.text.toLowerCase().includes('files');
-     toggleFilesAndCode(showFiles);
-    // If CSS or JS injection code is available, update the UI and send to parent window
-    if (botResponse.cssInjectionCode || botResponse.jsInjectionCode) {
-      if (botResponse.cssInjectionCode) {
-        postInjectionCssDisplay.textContent = botResponse.cssInjectionCode;
+    let botResponse;
+    let fallbackAttempted = false;
+
+    const tryProvider = async (provider) => {
+      switch(provider) {
+        case 'gemini':
+          return await geminiAgent.getBotResponse(userMessageText);
+        case 'claude':
+          return await claudeAgent.getBotResponse(userMessageText);
+        case 'openai':
+          return await openAIAgent.getBotResponse(userMessageText);
+        default:
+          throw new Error('Unknown provider');
       }
-      if (botResponse.jsInjectionCode) {
-        postInjectionJsDisplay.textContent = botResponse.jsInjectionCode;
+    };
+
+    try {
+      botResponse = await tryProvider(currentProvider);
+    } catch (error) {
+      console.error(`${currentProvider} error:`, error);
+      
+      if (error.message.includes('RESOURCE_EXHAUSTED') || 
+          error.message.includes('quota') || 
+          error.message.includes('rate limit')) {
+        
+        // Define fallback order
+        const fallbackOrder = ['gemini', 'openai', 'claude'];
+        const currentIndex = fallbackOrder.indexOf(currentProvider);
+        
+        // Try next provider in the fallback order
+        for (let i = 1; i < fallbackOrder.length; i++) {
+          const nextIndex = (currentIndex + i) % fallbackOrder.length;
+          const nextProvider = fallbackOrder[nextIndex];
+          
+          console.log(`${currentProvider} quota exceeded, trying ${nextProvider}...`);
+          try {
+            botResponse = await tryProvider(nextProvider);
+            currentProvider = nextProvider;
+            providerSelect.value = nextProvider;
+            fallbackAttempted = true;
+            break;
+          } catch (fallbackError) {
+            console.error(`${nextProvider} fallback error:`, fallbackError);
+          }
+        }
+        
+        if (!fallbackAttempted) {
+          throw new Error('All providers failed');
+        }
+      } else {
+        throw error;
       }
-      window.parent.postMessage({
-        type: 'INJECT_CODE_TO_TAB',
-        css: botResponse.cssInjectionCode,
-        js: botResponse.jsInjectionCode
-      }, '*');
-      console.log('Injection code sent:', botResponse.cssInjectionCode, botResponse.jsInjectionCode);
     }
+
+    addBotMessage(botResponse.text);
+
+    if (botResponse.cssInjectionCode || botResponse.jsInjectionCode) {
+      updateInjectionDisplays(botResponse);
+      sendInjectionToParent(botResponse);
+    }
+    
+    isFirstMessage = false;
   } catch (error) {
     addBotMessage("Error communicating with the chatbot.");
     console.error("API Error:", error);
@@ -155,6 +127,24 @@ async function sendMessage() {
   hideLoader();
 }
 
+function updateInjectionDisplays(response) {
+  if (response.cssInjectionCode) {
+    postInjectionCssDisplay.textContent = response.cssInjectionCode;
+  }
+  if (response.jsInjectionCode) {
+    postInjectionJsDisplay.textContent = response.jsInjectionCode;
+  }
+}
+
+function sendInjectionToParent(response) {
+  window.parent.postMessage({
+    type: 'INJECT_CODE_TO_TAB',
+    css: response.cssInjectionCode,
+    js: response.jsInjectionCode
+  }, '*');
+}
+
+// UI Helper Functions
 function showLoader() {
   loader.style.display = 'block';
 }
@@ -174,19 +164,47 @@ function addUserMessage(message) {
 function addBotMessage(message) {
   const messageDiv = document.createElement('div');
   messageDiv.classList.add('message', 'bot-message');
-  // Handle if message is an object
-  if (typeof message === 'object') {
-    messageDiv.textContent = JSON.stringify(message, null, 2);
-  } else {
-    messageDiv.textContent = message;
-  }
+  messageDiv.textContent = typeof message === 'object' ? JSON.stringify(message, null, 2) : message;
   chatContainer.appendChild(messageDiv);
   chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
-// Memory management system
+// Helper function to format page elements
+function formatPageElements(elements) {
+  if (!elements || elements.length === 0) {
+    return "No interactive elements were detected on this page.";
+  }
+
+  // Group elements by type
+  const groupedElements = elements.reduce((acc, el) => {
+    const type = el.tag.toLowerCase();
+    if (!acc[type]) acc[type] = [];
+    acc[type].push(el);
+    return acc;
+  }, {});
+
+  let output = "Here are the interactive elements I've detected on this page:\n\n";
+
+  // Format each group
+  for (const [type, els] of Object.entries(groupedElements)) {
+    output += `${type.toUpperCase()} elements (${els.length}):\n`;
+    els.forEach(el => {
+      let desc = `- ${el.tag}`;
+      if (el.id) desc += ` #${el.id}`;
+      if (el.classes) desc += ` .${el.classes}`;
+      if (el.text) desc += ` "${el.text.substring(0, 50)}${el.text.length > 50 ? '...' : ''}"`;
+      if (el.type && el.type !== type) desc += ` (type="${el.type}")`;
+      output += desc + '\n';
+    });
+    output += '\n';
+  }
+
+  return output;
+}
+
+// Memory Management System
 const MemorySystem = {
-  maxMemorySize: 50, // Maximum number of messages to store
+  maxMemorySize: 50,
 
   initialize() {
     if (!localStorage.getItem('chatMemory')) {
@@ -197,12 +215,9 @@ const MemorySystem = {
   saveMessage(role, content) {
     const memory = this.getMemory();
     memory.push({ role, content, timestamp: Date.now() });
-
-    // Remove oldest messages if exceeding maxMemorySize
     while (memory.length > this.maxMemorySize) {
       memory.shift();
     }
-
     localStorage.setItem('chatMemory', JSON.stringify(memory));
   },
 
@@ -219,69 +234,6 @@ const MemorySystem = {
     return memory.slice(-messageCount);
   }
 };
-
-// Update getBotResponse function to use Claude API
-async function getBotResponse(userMessage) {
-  try {
-    console.log('Starting API request for message:', userMessage);
-    const recentContext = MemorySystem.getRecentContext();
-
-    // Format the request according to Claude's API requirements
-    const requestBody = {
-      model: "claude-3-sonnet-20240229",
-      max_tokens: 4096,
-      messages: [{
-        role: "user",
-        content: userMessage
-      }],
-      system: systemPrompt
-    };
-
-    // Save user message to memory
-    MemorySystem.saveMessage("user", userMessage);
-
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
-    });
-
-    const data = await response.json();
-    console.log('API Response:', data);
-
-    if (!response.ok) {
-      console.error('API Error:', data);
-      throw new Error(data.error?.message || 'Unknown error occurred');
-    }
-
-    // Check for the correct response format
-    if (!data || !data.content || !data.content[0] || !data.content[0].text) {
-      console.error('Invalid API response:', data);
-      throw new Error('Invalid response format from API');
-    }
-
-    // Get the message content from the first message
-    const botMessageText = data.content[0].text;
-
-    // Save bot response to memory
-    if (botMessageText) {
-      MemorySystem.saveMessage("assistant", botMessageText);
-    }
-
-    return {
-      text: botMessageText,
-      cssInjectionCode: extractCode(botMessageText, "CSS"),
-      jsInjectionCode: extractCode(botMessageText, "JS")
-    };
-  } catch (error) {
-    console.error('Error in getBotResponse:', error);
-    throw error;
-  }
-}
 
 // Helper function to extract code blocks
 function extractCode(message, type) {
@@ -302,30 +254,16 @@ function extractCode(message, type) {
   return null;
 }
 
-// Listener to receive element data from newtab.html
-window.addEventListener('message', (event) => {
-  console.log("Message received:", event.data);
-  if (event.data.type === 'PAGE_ELEMENTS' && event.data.action === 'UPDATE_ELEMENTS') {
-    receiveElementDataFromNewTab(event.data.elements);
-  }
-});
-
-window.receiveElementDataFromNewTab = function (elementData) {
-  console.log("receiveElementDataFromNewTab called with data:", elementData);
-  pageElements = elementData;
-  if (elementData && elementData.length > 0) {
-    const elementsText = elementData.map(el =>
-      `- ${el.tag} ${el.id ? `#${el.id}` : ''} ${el.classes ? `.${el.classes}` : ''} "${el.text}"`
-    ).join('\n');
-    addBotMessage(
-      `Hi there! I've detected the interactive elements on this page:\n${elementsText}\n\nLet me know what you want to do!`
-    );
-  } else {
-    addBotMessage(
-      "Hi there! I've loaded, but no interactive elements were detected on this page. How can I help you?"
-    );
-  }
-};
-
-// Initialize the memory system when the page loads
+// Initialize
 MemorySystem.initialize();
+
+// Export necessary functions and variables for agent files
+const getPageElements = () => pageElements;
+
+export {
+  MemorySystem,
+  extractCode,
+  addBotMessage,
+  formatPageElements,
+  getPageElements
+};
