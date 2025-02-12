@@ -1,258 +1,340 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <title>WebAgent Chatbot</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            margin: 0;
-        }
-
-        #chat-container {
-            height: 80%;
-            overflow-y: scroll;
-            border: 1px solid #ccc;
-            padding: 10px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .message {
-            padding: 8px;
-            margin-bottom: 8px;
-            border-radius: 5px;
-            word-wrap: break-word;
-        }
-
-        .user-message {
-            background-color: #e0f7fa;
-            align-self: flex-end;
-        }
-
-        .bot-message {
-            background-color: #f0f0f0;
-            align-self: flex-start;
-        }
-
-        #input-area {
-            display: flex;
-            padding: 10px;
-            border-top: 1px solid #ccc;
-        }
-
-        #user-input {
-            flex-grow: 1;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            margin-right: 10px;
-        }
-
-        #send-button {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 5px;
-            background-color: #4caf50;
-            color: white;
-            cursor: pointer;
-        }
-
-        #post-injection-section {
-            padding: 10px;
-            border-top: 1px solid #ccc;
-            background-color: #f9f9f9;
-        }
-
-        #post-injection-section h2 {
-            margin-top: 0;
-        }
-
-        #post-injection-code {
-            background-color: #eee;
-            padding: 10px;
-            border-radius: 5px;
-            font-family: monospace;
-            white-space: pre-wrap;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebAgent Chatbot</title>
+  <style>
+    /* Modern minimalist styling */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background-color: #fafafa;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    #chat-container {
+      flex-grow: 1;
+      padding: 20px;
+      overflow-y: auto;
+      border-bottom: 1px solid #ddd;
+      background: #fff;
+    }
+    .message {
+      margin-bottom: 15px;
+      padding: 10px 15px;
+      border-radius: 8px;
+      max-width: 80%;
+      opacity: 0;
+      animation: fadeIn 0.5s forwards;
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+    .user-message {
+      background-color: #d1e7dd;
+      align-self: flex-end;
+    }
+    .bot-message {
+      background-color: #e2e3e5;
+      align-self: flex-start;
+    }
+    #input-area {
+      display: flex;
+      padding: 15px;
+      background: #fff;
+      align-items: center;
+      border-top: 1px solid #ddd;
+    }
+    #user-input {
+      flex-grow: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1em;
+      margin-right: 10px;
+    }
+    #send-button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background-color: #4caf50;
+      color: #fff;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background-color 0.3s ease;
+    }
+    #send-button:hover {
+      background-color: #43a047;
+    }
+    /* Loader (spinner) */
+    #loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      display: none;
+      margin-left: 10px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    /* Post-Injection Code Sections */
+    #post-injection-section {
+      background-color: #f4f4f4;
+      padding: 15px;
+      border-top: 1px solid #ddd;
+      font-family: monospace;
+    }
+    #post-injection-section h2 {
+      margin-top: 0;
+    }
+    .code-block {
+      margin-bottom: 15px;
+    }
+    .code-block h3 {
+      margin: 5px 0;
+    }
+    .code-block pre {
+      background: #eee;
+      padding: 10px;
+      border-radius: 5px;
+      white-space: pre-wrap;
+      margin: 0;
+    }
+  </style>
 </head>
-
 <body>
-    <div id="chat-container">
-        <!-- Chat messages will be appended here -->
+  <div id="chat-container">
+    <!-- Chat messages will be appended here -->
+  </div>
+  <div id="input-area">
+    <input type="text" id="user-input" placeholder="Type your message..." />
+    <button id="send-button">Send</button>
+    <div id="loader"></div>
+  </div>
+  <div id="post-injection-section">
+    <h2>Post-Injection Code (Editable by AI)</h2>
+    <div class="code-block">
+      <h3>CSS File</h3>
+      <pre id="post-injection-css">
+<!-- No CSS post-injection code yet. -->
+      </pre>
     </div>
-    <div id="input-area">
-        <input type="text" id="user-input" placeholder="Type your message...">
-        <button id="send-button">Send</button>
+    <div class="code-block">
+      <h3>JS File</h3>
+      <pre id="post-injection-js">
+<!-- No JS post-injection code yet. -->
+      </pre>
     </div>
-    <div id="post-injection-section">
-        <h2>Post-Injection Code (CSS/JS)</h2>
-        <div id="post-injection-code">
-            <!-- Post-injection code from chatbot will be displayed here -->
-            <p>No post-injection code yet.</p>
-        </div>
-    </div>
+  </div>
 
-    <script>
-        const chatContainer = document.getElementById('chat-container');
-        const userInput = document.getElementById('user-input');
-        const sendButton = document.getElementById('send-button');
-        const postInjectionCodeDisplay = document.getElementById('post-injection-code');
+  <script>
+    const chatContainer = document.getElementById('chat-container');
+    const userInput = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-button');
+    const loader = document.getElementById('loader');
+    const postInjectionCssDisplay = document.getElementById('post-injection-css');
+    const postInjectionJsDisplay = document.getElementById('post-injection-js');
 
-        const apiKey = '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'; // **IMPORTANT: In a real application, do NOT hardcode API keys.** Use environment variables or secure configuration.
+    // Global flag to ensure page elements are sent only with the first message.
+    let isFirstMessage = true;
+    let pageElements = []; // Store page element data from newtab.html
+    console.log("webAgent.html script loaded. pageElements initialized:", pageElements);
 
-        // TODO: System prompt - You can customize the chatbot's personality and instructions here.
-        const systemPrompt = `You are a helpful Web Agent. You have been provided with information about the interactive elements on the webpage. Your primary goal is to assist the user in interacting with this webpage using CSS and Javascript. When the user asks you to perform an action on the page (e.g., "click a button", "change the color of the input"), analyze the provided element information to identify the relevant elements and generate the necessary CSS or Javascript code to achieve the desired outcome.  Provide code for injection within [POST_INJECTION_START] and [POST_INJECTION_END] markers. If the request is not related to webpage interaction, respond as a general helpful assistant.`;
+    // API key (IMPORTANT: In production, do NOT hardcode API keys. Use environment variables.)
+    const apiKey = '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';
 
-        let pageElements = []; // Store page elements received from newtab.html
-        console.log("webAgent.html script loaded. pageElements initialized:", pageElements); // Log on script load
+    const systemPrompt = `You are a helpful Web Agent assisting with webpage interactions using CSS and Javascript. 
 
-        sendButton.addEventListener('click', sendMessage);
+When providing code:
+1. Use ONLY pure CSS/JS without any markdown syntax or code block markers
+2. Place CSS between [POST_INJECTION_CSS_START] and [POST_INJECTION_CSS_END]
+3. Place JS between [POST_INJECTION_JS_START] and [POST_INJECTION_JS_END]
 
-        userInput.addEventListener('keydown', function (event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
-        });
+Example format:
+[POST_INJECTION_CSS_START]
+body { background: red; }
+[POST_INJECTION_CSS_END]
 
-        // Replace the existing sendMessage function with this:
-        async function sendMessage() {
-            const userMessageText = userInput.value;
-            if (!userMessageText.trim()) return;
+[POST_INJECTION_JS_START]
+document.querySelector('button').click();
+[POST_INJECTION_JS_END]
 
-            addUserMessage(userMessageText);
-            userInput.value = '';
+For non-webpage interactions, respond as a helpful assistant.`;
 
-            try {
-                const botResponse = await getBotResponse(userMessageText);
-                addBotMessage(botResponse.text, botResponse.postInjectionCode);
-                if (botResponse.postInjectionCode) {
-    // Display in UI
-    postInjectionCodeDisplay.innerHTML = `<pre>${botResponse.postInjectionCode}</pre>`;
-    
-    // Send to parent window for injection into active tab
-    window.parent.postMessage({
-        type: 'INJECT_CODE_TO_TAB',
-        code: botResponse.postInjectionCode
-    }, '*');
-    
-    console.log('Injection code sent for tab:', botResponse.postInjectionCode);
-}
-            } catch (error) {
-                addBotMessage("Error communicating with the chatbot.", null);
-                console.error("API Error:", error);
-            }
+    sendButton.addEventListener('click', sendMessage);
+    userInput.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') sendMessage();
+    });
+
+    async function sendMessage() {
+      const userMessageText = userInput.value;
+      if (!userMessageText.trim()) return;
+
+      // Append the user's message to the chat container
+      addUserMessage(userMessageText);
+      userInput.value = '';
+
+      // Show the loader animation while waiting for response
+      showLoader();
+      try {
+        const botResponse = await getBotResponse(userMessageText);
+        addBotMessage(botResponse.text);
+        
+        // If CSS or JS injection code is available, update the UI and send to parent window
+        if (botResponse.cssInjectionCode || botResponse.jsInjectionCode) {
+          if (botResponse.cssInjectionCode) {
+            postInjectionCssDisplay.textContent = botResponse.cssInjectionCode;
+          }
+          if (botResponse.jsInjectionCode) {
+            postInjectionJsDisplay.textContent = botResponse.jsInjectionCode;
+          }
+          window.parent.postMessage({
+            type: 'INJECT_CODE_TO_TAB',
+            css: botResponse.cssInjectionCode,
+            js: botResponse.jsInjectionCode
+          }, '*');
+          console.log('Injection code sent:', botResponse.cssInjectionCode, botResponse.jsInjectionCode);
         }
+      } catch (error) {
+        addBotMessage("Error communicating with the chatbot.");
+        console.error("API Error:", error);
+      }
+      hideLoader();
+    }
 
-        function addUserMessage(message) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', 'user-message');
-            messageDiv.textContent = message;
-            chatContainer.appendChild(messageDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+    function showLoader() {
+      loader.style.display = 'block';
+    }
+
+    function hideLoader() {
+      loader.style.display = 'none';
+    }
+
+    function addUserMessage(message) {
+      const messageDiv = document.createElement('div');
+      messageDiv.classList.add('message', 'user-message');
+      messageDiv.textContent = message;
+      chatContainer.appendChild(messageDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function addBotMessage(message) {
+      const messageDiv = document.createElement('div');
+      messageDiv.classList.add('message', 'bot-message');
+      messageDiv.textContent = message;
+      chatContainer.appendChild(messageDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    async function getBotResponse(userMessage) {
+      console.log("getBotResponse called. Current pageElements:", pageElements);
+      
+      // Only attach pageElements with the first message.
+      let augmentedUserMessage;
+      if (isFirstMessage && pageElements.length > 0) {
+        augmentedUserMessage = `${userMessage}\n\nPage elements:\n${JSON.stringify(pageElements, null, 2)}`;
+        isFirstMessage = false;
+      } else {
+        augmentedUserMessage = userMessage;
+      }
+      
+      const apiUrl = 'https://api.openai.com/v1/chat/completions';
+      const headers = {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      };
+
+      const requestBody = JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: augmentedUserMessage }
+        ]
+      });
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: headers,
+        body: requestBody
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      let botMessageText = data.choices[0].message.content;
+
+      // Extract CSS and JS injection code using custom markers
+      let cssInjectionCode = null;
+      let jsInjectionCode = null;
+
+      const cssStartMarker = "[POST_INJECTION_CSS_START]";
+      const cssEndMarker = "[POST_INJECTION_CSS_END]";
+      const jsStartMarker = "[POST_INJECTION_JS_START]";
+      const jsEndMarker = "[POST_INJECTION_JS_END]";
+
+      // Extract CSS code if present
+      const cssStartIndex = botMessageText.indexOf(cssStartMarker);
+      const cssEndIndex = botMessageText.indexOf(cssEndMarker);
+      if (cssStartIndex !== -1 && cssEndIndex !== -1 && cssStartIndex < cssEndIndex) {
+        cssInjectionCode = botMessageText.substring(cssStartIndex + cssStartMarker.length, cssEndIndex).trim();
+        // Remove the extracted block from the message
+        botMessageText = botMessageText.slice(0, cssStartIndex) + botMessageText.slice(cssEndIndex + cssEndMarker.length);
+        botMessageText = botMessageText.trim();
+        if (!botMessageText) {
+          botMessageText = "Here is the code for post-injection:";
         }
+      }
 
-        function addBotMessage(message, postInjectionCode) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', 'bot-message');
-            messageDiv.textContent = message;
-            chatContainer.appendChild(messageDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
+      // Extract JS code if present
+      const jsStartIndex = botMessageText.indexOf(jsStartMarker);
+      const jsEndIndex = botMessageText.indexOf(jsEndMarker);
+      if (jsStartIndex !== -1 && jsEndIndex !== -1 && jsStartIndex < jsEndIndex) {
+        jsInjectionCode = botMessageText.substring(jsStartIndex + jsStartMarker.length, jsEndIndex).trim();
+        botMessageText = botMessageText.slice(0, jsStartIndex) + botMessageText.slice(jsEndIndex + jsEndMarker.length);
+        botMessageText = botMessageText.trim();
+        if (!botMessageText) {
+          botMessageText = "Here is the code for post-injection:";
         }
+      }
+      
+      return { 
+        text: botMessageText, 
+        cssInjectionCode: cssInjectionCode, 
+        jsInjectionCode: jsInjectionCode 
+      };
+    }
 
+    // Listener to receive element data from newtab.html
+    window.addEventListener('message', (event) => {
+      console.log("Message received:", event.data);
+      if (event.data.type === 'PAGE_ELEMENTS' && event.data.action === 'UPDATE_ELEMENTS') {
+        receiveElementDataFromNewTab(event.data.elements);
+      }
+    });
 
-        async function getBotResponse(userMessage) {
-            console.log("getBotResponse called. Current pageElements:", pageElements); // Log at start of getBotResponse
-            const apiUrl = 'https://api.openai.com/v1/chat/completions';
-
-            const headers = {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            };
-
-            // Include page elements in the user message to provide context to the bot
-            const augmentedUserMessage = `${userMessage}\n\nPage elements:\n${JSON.stringify(pageElements, null, 2)}`;
-            console.log("Augmented user message:", augmentedUserMessage); // Log augmented message
-
-            const requestBody = JSON.stringify({
-                model: "gpt-4o-mini",
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: augmentedUserMessage }
-                ]
-            });
-
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: headers,
-                body: requestBody
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            let botMessageText = data.choices[0].message.content;
-            let postInjectionCode = null;
-
-            const startMarker = "[POST_INJECTION_START]";
-            const endMarker = "[POST_INJECTION_END]";
-
-            const startIndex = botMessageText.indexOf(startMarker);
-            const endIndex = botMessageText.indexOf(endMarker);
-
-            if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
-                postInjectionCode = botMessageText.substring(startIndex + startMarker.length, endIndex).trim();
-                botMessageText = botMessageText.substring(0, startIndex).trim() + botMessageText.substring(endIndex + endMarker.length).trim();
-                if (!botMessageText.trim()) {
-                    botMessageText = "Here is the code for post-injection:";
-                }
-            }
-
-
-            return { text: botMessageText, postInjectionCode: postInjectionCode };
-        }
-
-        // Function to receive element data from newtab.html
-        // First, add the message listener
-        window.addEventListener('message', function (event) {
-            if (event.data.type === 'PAGE_ELEMENTS') {
-                receiveElementDataFromNewTab(event.data.elements);
-            }
-        });
-
-        // Then modify the existing function
-        window.receiveElementDataFromNewTab = function (elementData) {
-            console.log("receiveElementDataFromNewTab called with data:", elementData);
-
-            // Store the element data
-            pageElements = elementData;
-
-            // Process and display elements
-            if (elementData && elementData.length > 0) {
-                const elementsText = elementData.map(el =>
-                    `- ${el.tag} ${el.id ? `#${el.id}` : ''} ${el.classes ? `.${el.classes}` : ''} "${el.text}"`
-                ).join('\n');
-
-                addBotMessage(
-                    `Hello! I've analyzed the current page and found these interactive elements:\n${elementsText}\n\nI'm ready to help you interact with this page. Just tell me what you'd like to do!`,
-                    null
-                );
-            } else {
-                addBotMessage(
-                    "Hello! I've loaded, but it seems there are no interactive elements detected on this page. Let me know if you need help with anything else!",
-                    null
-                );
-            }
-        };
-    </script>
-
+    window.receiveElementDataFromNewTab = function (elementData) {
+      console.log("receiveElementDataFromNewTab called with data:", elementData);
+      pageElements = elementData;
+      if (elementData && elementData.length > 0) {
+        const elementsText = elementData.map(el =>
+          `- ${el.tag} ${el.id ? `#${el.id}` : ''} ${el.classes ? `.${el.classes}` : ''} "${el.text}"`
+        ).join('\n');
+        addBotMessage(
+          `Hi there! I've detected the interactive elements on this page:\n${elementsText}\n\nLet me know what you want to do!`
+        );
+      } else {
+        addBotMessage(
+          "Hi there! I've loaded, but no interactive elements were detected on this page. How can I help you?"
+        );
+      }
+    };
+  </script>
 </body>
-
 </html>

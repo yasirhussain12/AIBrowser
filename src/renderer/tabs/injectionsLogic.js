@@ -12,19 +12,12 @@ window.injectBookmarkFiles = function(webview, files) {
     }
 
     files.forEach(file => {
-        log.debug('📁 File Details:', {
-            name: file.filename,
-            type: file.filename.endsWith('.css') ? 'CSS' : 'JavaScript',
-            contentLength: file.content?.length || 0,
-            content: file.content
-        });
+       
     });
 
     const injectionScript = files.map(file => {
-        log.debug(`💉 Preparing to inject: ${file.filename}`);
         
         if (file.filename.endsWith('.css')) {
-            log.debug(`🎨 CSS Content for ${file.filename}:`, file.content);
             return `
                 (() => {
                     const style = document.createElement('style');
@@ -36,7 +29,6 @@ window.injectBookmarkFiles = function(webview, files) {
         }
         
         if (file.filename.endsWith('.js')) {
-            log.debug(`📜 JS Content for ${file.filename}:`, file.content);
             return `
                 (() => {
                     const script = document.createElement('script');

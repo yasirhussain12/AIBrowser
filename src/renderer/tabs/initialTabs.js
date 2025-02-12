@@ -44,6 +44,38 @@ const { Menu, MenuItem } = require("electron");
       .catch((err) => log.error("Failed to initialize:", err));
   }
 
+
+
+  window.addEventListener('message', function(event) {
+    if (event.data.type === 'INJECT_CODE_TO_TAB') {
+        log.debug("Message received in initialTabs.js:", event.data);
+        const cssCode = event.data.css;
+        const jsCode = event.data.js;
+
+        const activeWebviewContainer = document.querySelector('.webview-container.active');
+        if (activeWebviewContainer) {
+            const activeWebview = activeWebviewContainer.querySelector('webview');
+            console.log("Active webview container:", activeWebviewContainer);
+            console.log("Active webview:", activeWebview);
+            if (activeWebview) {
+                setTimeout(() => { // <----- ADD setTimeout HERE
+                    if (cssCode) {
+                        injectCSS(activeWebview, cssCode);
+                    }
+                    if (jsCode) {
+                        injectJS(activeWebview, jsCode);
+                    }
+                }, 100); // 100ms delay
+            } else {
+                log.error("No webview found in active container.");
+            }
+        } else {
+            log.error("No active webview container found.");
+        }
+    }
+}, false);
+
+
   async function checkAndRedirectDefaultBookmark() {
     try {
       const bookmarks = await getBookmarks();
@@ -250,3 +282,34 @@ const { Menu, MenuItem } = require("electron");
   // Expose setupTabManagement globally
   window.setupTabManagement = setupTabManagement;
 })();
+
+
+function injectCSS(webview, css) {
+  if (!webview || !css) {
+      console.error("Invalid webview or CSS");
+      return;
+  }
+
+  const script = `
+      (() => {
+          const style = document.createElement('style');
+          style.textContent = \`${css}\`;
+          document.head.appendChild(style);
+      })();
+  `;
+  
+  webview.executeJavaScript(script)
+      .then(() => console.log("CSS Injected successfully"))
+      .catch(err => console.error("CSS Injection failed:", err));
+}
+
+function injectJS(webview, js) {
+  if (!webview || !js) {
+      console.error("Invalid webview or JS");
+      return;
+  }
+  
+  webview.executeJavaScript(js)
+      .then(() => console.log("JS Injected successfully"))
+      .catch(err => console.error("JS Injection failed:", err));
+}
