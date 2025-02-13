@@ -1,7 +1,7 @@
 // geminiAgent.js
 import { MemorySystem, extractCode, formatPageElements, getPageElements } from './webAgent.js';
 
-const GEMINI_API_KEY = 'AIzaSyD8lYp3A--ZbKexCaEneUyWBEK0hYE-42w';
+const GEMINI_API_KEY = '';
 const GEMINI_MODEL = 'models/gemini-2.0-flash-001';
 
 const systemPrompt = `You are an AI assistant specializing in web automation with memory capabilities. Your role is to help users interact with web pages by generating appropriate CSS and JavaScript code. You have access to previous conversations through a memory system and can recall chat history. When users describe what they want to do on a webpage, analyze their request and provide the necessary code to accomplish their goal while maintaining context of previous interactions.

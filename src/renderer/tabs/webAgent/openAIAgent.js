@@ -1,7 +1,7 @@
 // openAIAgent.js
 import { MemorySystem, extractCode, formatPageElements, getPageElements } from './webAgent.js';
 
-const OPENAI_API_KEY = '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';
+const OPENAI_API_KEY = '';
 
 const systemPrompt = `You are an AI assistant specializing in web automation with memory capabilities. Your role is to help users interact with web pages by generating appropriate CSS and JavaScript code. You have access to previous conversations through a memory system and can recall our chat history. When users describe what they want to do on a webpage, analyze their request and provide the necessary code to accomplish their goal while maintaining context of our previous interactions.
 

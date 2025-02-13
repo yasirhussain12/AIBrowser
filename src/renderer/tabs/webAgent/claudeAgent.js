@@ -1,7 +1,7 @@
 // claudeAgent.js
 import { MemorySystem, extractCode, formatPageElements, getPageElements } from './webAgent.js';
 
-const CLAUDE_API_KEY = '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';
+const CLAUDE_API_KEY = '';
 
 const systemPrompt = `You are Claude, an AI assistant specializing in web automation with memory capabilities. Your role is to help users interact with web pages by generating appropriate CSS and JavaScript code. You have access to previous conversations through a memory system and can recall our chat history. When users describe what they want to do on a webpage, analyze their request and provide the necessary code to accomplish their goal while maintaining context of our previous interactions.
 
