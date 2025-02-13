@@ -1,6 +1,4 @@
 // webAgent.js
-import { geminiAgent } from './geminiAgent.js';
-import { claudeAgent } from './claudeAgent.js';
 import { openAIAgent } from './openAIAgent.js';
 
 const chatContainer = document.getElementById('chat-container');
@@ -11,18 +9,20 @@ const postInjectionCssDisplay = document.getElementById('post-injection-css');
 const postInjectionJsDisplay = document.getElementById('post-injection-js');
 const toggleCodeButton = document.getElementById('toggle-code-button');
 const postInjectionSection = document.getElementById('post-injection-section');
-const providerSelect = document.getElementById('provider-select');
 
 // Global state
 let isFirstMessage = true;
 let pageElements = [];
-let currentProvider = 'gemini';
+let currentProvider = 'openai'; // Default to OpenAI
 
 // Listener to receive element data from newtab.html
 window.addEventListener('message', (event) => {
-  console.log("Message received in webAgent:", event.data);
+  console.log("Message received in webAgent:", event.data); // Keep this initial log
+
   if (event.data.type === 'PAGE_ELEMENTS' && event.data.action === 'UPDATE_ELEMENTS') {
-    pageElements = event.data.elements;
+    console.log("Received PAGE_ELEMENTS message"); // Simplified log
+    console.log("Event Page Data:", event.data.pageData); // Log event.data.pageData
+    pageElements = event.data.pageData?.elements; // Access elements from event.data.pageData
     console.log("Updated page elements:", pageElements);
   }
 });
@@ -37,18 +37,6 @@ userInput.addEventListener('keydown', function (event) {
   if (event.key === 'Enter') sendMessage();
 });
 
-providerSelect.addEventListener('change', (e) => {
-  currentProvider = e.target.value;
-  console.log('Switched to provider:', currentProvider);
-  
-  // Reset state when switching providers
-  MemorySystem.clearMemory();
-  isFirstMessage = true;
-
-  // Notify user of provider change
-  addBotMessage(`Switched to ${currentProvider}. How can I help you?`);
-});
-
 async function sendMessage() {
   const userMessageText = userInput.value;
   if (!userMessageText.trim()) return;
@@ -58,59 +46,7 @@ async function sendMessage() {
   showLoader();
 
   try {
-    let botResponse;
-    let fallbackAttempted = false;
-
-    const tryProvider = async (provider) => {
-      switch(provider) {
-        case 'gemini':
-          return await geminiAgent.getBotResponse(userMessageText);
-        case 'claude':
-          return await claudeAgent.getBotResponse(userMessageText);
-        case 'openai':
-          return await openAIAgent.getBotResponse(userMessageText);
-        default:
-          throw new Error('Unknown provider');
-      }
-    };
-
-    try {
-      botResponse = await tryProvider(currentProvider);
-    } catch (error) {
-      console.error(`${currentProvider} error:`, error);
-      
-      if (error.message.includes('RESOURCE_EXHAUSTED') || 
-          error.message.includes('quota') || 
-          error.message.includes('rate limit')) {
-        
-        // Define fallback order
-        const fallbackOrder = ['gemini', 'openai', 'claude'];
-        const currentIndex = fallbackOrder.indexOf(currentProvider);
-        
-        // Try next provider in the fallback order
-        for (let i = 1; i < fallbackOrder.length; i++) {
-          const nextIndex = (currentIndex + i) % fallbackOrder.length;
-          const nextProvider = fallbackOrder[nextIndex];
-          
-          console.log(`${currentProvider} quota exceeded, trying ${nextProvider}...`);
-          try {
-            botResponse = await tryProvider(nextProvider);
-            currentProvider = nextProvider;
-            providerSelect.value = nextProvider;
-            fallbackAttempted = true;
-            break;
-          } catch (fallbackError) {
-            console.error(`${nextProvider} fallback error:`, fallbackError);
-          }
-        }
-        
-        if (!fallbackAttempted) {
-          throw new Error('All providers failed');
-        }
-      } else {
-        throw error;
-      }
-    }
+    const botResponse = await openAIAgent.getBotResponse(userMessageText); // Directly use openAIAgent
 
     addBotMessage(botResponse.text);
 
@@ -118,7 +54,7 @@ async function sendMessage() {
       updateInjectionDisplays(botResponse);
       sendInjectionToParent(botResponse);
     }
-    
+
     isFirstMessage = false;
   } catch (error) {
     addBotMessage("Error communicating with the chatbot.");
@@ -172,31 +108,47 @@ function addBotMessage(message) {
 // Helper function to format page elements
 function formatPageElements(elements) {
   if (!elements || elements.length === 0) {
-    return "No interactive elements were detected on this page.";
+      return "No interactive elements were detected on this page.";
   }
 
-  // Group elements by type
-  const groupedElements = elements.reduce((acc, el) => {
-    const type = el.tag.toLowerCase();
-    if (!acc[type]) acc[type] = [];
-    acc[type].push(el);
-    return acc;
-  }, {});
+  let output = "Here are the interactive elements I've detected on this page, with details to help you target them:\n\n";
 
-  let output = "Here are the interactive elements I've detected on this page:\n\n";
+  elements.forEach(el => {
+      if (!el.isVisible) return; // Skip invisible elements in the formatted output
 
-  // Format each group
-  for (const [type, els] of Object.entries(groupedElements)) {
-    output += `${type.toUpperCase()} elements (${els.length}):\n`;
-    els.forEach(el => {
-      let desc = `- ${el.tag}`;
-      if (el.id) desc += ` #${el.id}`;
-      if (el.classes) desc += ` .${el.classes}`;
-      if (el.text) desc += ` "${el.text.substring(0, 50)}${el.text.length > 50 ? '...' : ''}"`;
-      if (el.type && el.type !== type) desc += ` (type="${el.type}")`;
-      output += desc + '\n';
-    });
-    output += '\n';
+      output += `Element: <${el.tag.toUpperCase()}>`;
+      if (el.id) output += ` #${el.id}`;
+      if (el.classes && el.classes.length > 0) output += ` .${el.classes.join('.')}`;
+      if (el.name) output += ` (name="${el.name}")`;
+      if (el.type && el.type !== el.tag.toLowerCase()) output += ` (type="${el.type}")`;
+      if (el.role) output += ` (role="${el.role}")`;
+
+      output += `\n  - Text: "${el.text.substring(0, 50)}${el.text.length > 50 ? '...' : ''}"`;
+      if (el.placeholder) output += `\n  - Placeholder: "${el.placeholder}"`;
+      if (el.value) output += `\n  - Value: "${el.value}"`;
+
+      output += `\n  - Path (CSS Selector): "${el.path}"`;
+      output += `\n  - Location (approximate viewport coordinates): x:${Math.round(el.rect.x)}, y:${Math.round(el.rect.y)}`;
+
+      let interactiveProps = [];
+      if (el.interactive.isClickable) interactiveProps.push("Clickable");
+      if (el.interactive.isEditable) interactiveProps.push("Editable");
+      if (el.interactive.isFocusable) interactiveProps.push("Focusable");
+      if (interactiveProps.length > 0) {
+          output += `\n  - Interactive: ${interactiveProps.join(', ')}`;
+      }
+      if (el.interactive.display) {
+          output += `\n  - Display CSS: ${el.interactive.display}`; // Add display style
+      }
+       if (el.interactive.pointerEvents) {
+          output += `\n  - Pointer Events CSS: ${el.interactive.pointerEvents}`; // Add pointer-events style
+      }
+
+      output += `\n\n`; // Extra newline to separate elements
+  });
+
+  if (output === "Here are the interactive elements I've detected on this page, with details to help you target them:\n\n") {
+      return "No *visible* interactive elements were detected on this page."; // More informative if no visible elements
   }
 
   return output;

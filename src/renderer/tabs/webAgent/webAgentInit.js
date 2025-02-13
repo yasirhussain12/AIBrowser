@@ -100,41 +100,67 @@ const sendPageDataToIframe = () => {
         const activeWebview = document.querySelector('.webview-container.active webview');
         if (!activeWebview) throw new Error('No active webview found');
 
-        // Use executeJavaScript to get elements from webview content
         activeWebview.executeJavaScript(`
-            (function() {
-                const elements = document.querySelectorAll('button, input, textarea, select, a[href], [role="button"], [contenteditable="true"]');
-                const output = [];
+            (function collectPageData() {
+                try {
+                    const pageData = {
+                        url: window.location.href,
+                        elements: []
+                    };
 
-                for(let el of elements) {
-                    output.push({
-                        tag: el.tagName,
-                        id: el.id || '',
-                        classes: Array.from(el.classList).join(' '),
-                        text: el.textContent?.substring(0, 50).trim() || '',
-                        type: el.type || '',
-                        name: el.name || '',
-                        placeholder: el.placeholder || '',
-                        rect: el.getBoundingClientRect().toJSON()
+                    const elements = document.querySelectorAll('button, a'); // VERY SIMPLE SELECTOR
+
+                    elements.forEach(element => {
+                        const elementData = {
+                            tag: element.tagName,
+                            path: (function getElementPath(element) { // Minimal path for debugging
+                                const path = [];
+                                while (element && element.nodeType === Node.ELEMENT_NODE) {
+                                    let selector = element.nodeName.toLowerCase();
+                                    if (element.id) {
+                                        selector += '#' + element.id;
+                                    }
+                                    path.unshift(selector);
+                                    element = element.parentNode;
+                                }
+                                return path.join(' > ');
+                            })(element),
+                            text: element.textContent?.trim() || ''
+                        };
+                        pageData.elements.push(elementData);
                     });
+
+                    return pageData;
+                } catch (e) {
+                    console.error('Error during collectPageData in webview:', e.message, e.stack);
+                    return { error: 'Error collecting page data in webview', message: e.message, stack: e.stack };
                 }
-                return output;
             })()
-        `).then(elementsData => {
+        `).then(pageData => {
             const iframe = document.getElementById('web-agent-iframe');
             if (!iframe) throw new Error('Iframe not found');
 
-            console.log("Sending elements from webview:", elementsData.length);
+            console.log("Simplified Page data collected:", pageData); // Modified log message
+            console.log("Sending simplified page data to iframe:", { // Modified log message
+                elementCount: pageData?.elements?.length,
+                url: pageData?.url
+            });
+
+            if (pageData && pageData.error) {
+                console.error('Error from webview data collection:', pageData);
+                throw new Error(pageData.error + ': ' + pageData.message);
+            }
+
             iframe.contentWindow.postMessage({
                 type: 'PAGE_ELEMENTS',
                 action: 'UPDATE_ELEMENTS',
-                elements: elementsData,
+                pageData: pageData,
                 timestamp: Date.now()
             }, '*');
         }).catch(error => {
-            console.error('Failed to get elements from webview:', error);
+            console.error('Failed to collect page data:', error);
         });
     } catch (error) {
         console.error('📫 Send data failed:', error);
     }
-};
+};  
